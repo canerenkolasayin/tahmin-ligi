@@ -176,6 +176,10 @@ const fmtTime=new Intl.DateTimeFormat("tr-TR",{hour:"2-digit",minute:"2-digit"})
 const dshort=new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short"});
 const kick=m=>new Date(m.kickoff).getTime();
 const started=m=>m.state!=="pre"||now()>=kick(m);
+/* A week locks at its first kickoff: no more changes, and everyone's predictions become visible. */
+const lockAt=w=>Math.min(...S.matches.filter(m=>m.week===w).map(kick));
+const weekLocked=w=>S.matches.some(m=>m.week===w&&(m.state==="in"||now()>=kick(m)));
+const locked=m=>started(m)||weekLocked(m.week);
 const isLive=m=>m.state==="in";
 const isFinal=m=>m.state==="post"&&m.done&&Number.isFinite(m.hs);
 const scored=m=>(isLive(m)||isFinal(m))&&Number.isFinite(m.hs)&&Number.isFinite(m.as);
@@ -284,18 +288,19 @@ function statusChip(m){
   if(isFinal(m))return h("span",{class:"state ft"},"Maç sonu");
   if(m.state==="post")return h("span",{class:"state lock"},/postp/i.test(m.detail||"")?"Ertelendi":/canc/i.test(m.detail||"")?"İptal edildi":"Oynanmadı");
   if(started(m))return h("span",{class:"state lock"},"Başladı · skor bekleniyor");
-  return h("span",{class:"state open",title:"Tahminler maç başlayınca kilitlenir"},"Açık · "+untilText(kick(m)-now())+" kaldı")}
+  if(locked(m))return h("span",{class:"state lock",title:"Haftanın ilk maçı başladığı için tahminler kilitlendi"},"Kilitli · başlamasına "+untilText(kick(m)-now()));
+  return h("span",{class:"state open",title:"Tahminler haftanın ilk maçı başlayınca kilitlenir"},"Açık · kilide "+untilText(lockAt(m.week)-now()))}
 
 /* ---------- Predict ---------- */
 function predictView(ms,wks){
   const list=ms.filter(m=>m.week===S.week);
-  const me=S.me,open=list.filter(m=>!started(m));
+  const me=S.me,open=list.filter(m=>!locked(m));
   const dirty=Object.keys(S.drafts).some(id=>open.some(m=>m.id===id));
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     weekNav(wks,list),
     h("div",{class:"list"},list.map(m=>matchRow(m,me))),
     me&&open.length?h("div",{class:"savebar"},
-      h("span",{class:"small muted"},`Açık ${open.length} maçın ${open.filter(m=>(S.picks[me]||{})[m.id]).length} tanesi tahmin edildi · tahminler maç başlayınca kilitlenir`),
+      h("span",{class:"small muted"},`Açık ${open.length} maçın ${open.filter(m=>(S.picks[me]||{})[m.id]).length} tanesi tahmin edildi · haftanın tüm tahminleri ilk maçla (${fmtDate.format(new Date(lockAt(S.week)))}) kilitlenir`),
       h("button",{id:"save",class:"btn primary",disabled:!dirty||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":"Tahminleri kaydet")):null)
 }
 function digitIn(id,val,label,onv){
@@ -303,7 +308,7 @@ function digitIn(id,val,label,onv){
     oninput:e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,2);onv(e.target.value)}})}
 const digit=(v,cls)=>h("span",{class:"digit"+(cls?" "+cls:"")},v==null||v===""?"–":String(v));
 function matchRow(m,me){
-  const st=started(m),mine=me?(S.picks[me]||{})[m.id]:null,d=S.drafts[m.id];
+  const st=locked(m),mine=me?(S.picks[me]||{})[m.id]:null,d=S.drafts[m.id];
   let center;
   if(scored(m))center=h("div",{class:"score"},digit(m.hs,isLive(m)?"livebox":""),h("span",{class:"sep"},":"),digit(m.as,isLive(m)?"livebox":""));
   else if(!st&&me){
@@ -327,7 +332,7 @@ function matchRow(m,me){
 async function savePicks(){
   const me=S.me;if(!me||S.saving)return;
   const changes=[];let incomplete=0;
-  for(const [id,d] of Object.entries(S.drafts)){const m=S.matches.find(x=>x.id===id);if(!m||started(m))continue;
+  for(const [id,d] of Object.entries(S.drafts)){const m=S.matches.find(x=>x.id===id);if(!m||locked(m))continue;
     if(d.h===""||d.a===""){incomplete++;continue}changes.push({m:id,h:+d.h,a:+d.a})}
   if(!changes.length){toast("Kaydetmeden önce maçın iki skorunu da gir.",true);return}
   S.saving=true;render();
@@ -336,7 +341,7 @@ async function savePicks(){
     if(!r||!r.ok){if(r&&r.error==="bad_pin"){signOut();toast("PIN artık geçerli değil. Tekrar giriş yap.",true)}else toast("Kaydedilemedi.",true);return}
     changes.forEach(c=>{delete S.drafts[c.m];S.myPicks=S.myPicks||{};S.myPicks[c.m]={h:c.h,a:c.a}});mergeMine();
     const skipped=r.skipped+incomplete;
-    toast(`${r.saved} tahmin kaydedildi.`+(skipped?` ${skipped} tahmin kaydedilmedi (skoru eksik ya da maç başlamış).`:""));
+    toast(`${r.saved} tahmin kaydedildi.`+(skipped?` ${skipped} tahmin kaydedilmedi (skoru eksik ya da hafta kilitlenmiş).`:""));
     refresh();
   }catch(e){S.saving=false;toast(errMsg(e),true)}
 }
@@ -347,7 +352,7 @@ function liveView(ms,wks){
   const ps=S.players;
   const totals={};ps.forEach(p=>totals[p.id]={fin:0,prov:0});
   const rows=list.map(m=>{
-    const st=started(m),pts=matchPoints(m)||{};
+    const st=started(m),lk=locked(m),pts=matchPoints(m)||{};
     if(scored(m))ps.forEach(p=>{const x=pts[p.id];if(x){isFinal(m)?totals[p.id].fin+=x.total:totals[p.id].prov+=x.total}});
     const sc=scored(m)?h("td",{class:"sc c"+(isLive(m)?" live":"")},m.hs+" – "+m.as,h("small",{},isLive(m)?(m.clock||"Canlı"):"MS")):
       h("td",{class:"sc c"},h("small",{},m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):st?"Başladı":fmtTime.format(new Date(m.kickoff))));
@@ -355,8 +360,8 @@ function liveView(ms,wks){
       h("td",{class:"fx l"},h("b",{},h("span",{text:m.home}),h("span",{class:"vs"}," – "),h("span",{text:m.away})),h("div",{},fmtDate.format(new Date(m.kickoff)))),
       sc,
       ps.map(p=>{const x=(S.picks[p.id]||{})[m.id],cls="pk c"+(p.id===S.me?" mine":"");
-        if(!st){const inn=x||S.submitted.has(p.id+"|"+m.id);
-          return h("td",{class:cls,title:inn?"Tahmin yapıldı, maç başlayınca görünecek":"Henüz tahmin yok"},h("span",{class:"small muted"},inn?"✓":"–"))}
+        if(!lk){const inn=x||S.submitted.has(p.id+"|"+m.id);
+          return h("td",{class:cls,title:inn?"Tahmin yapıldı, haftanın ilk maçı başlayınca görünecek":"Henüz tahmin yok"},h("span",{class:"small muted"},inn?"✓":"–"))}
         if(!x)return h("td",{class:cls,title:"Tahmin yok"},h("span",{class:"small muted"},"–"));
         const r=pts[p.id];
         return h("td",{class:cls},x.h+"–"+x.a,r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":""),title:POOLS.filter(([k])=>r.hit[k]).map(([,l])=>l).join(", ")||"İsabet yok"},fmtPts(r.total)):null)}))});
@@ -367,7 +372,7 @@ function liveView(ms,wks){
       h("thead",{},h("tr",{},h("th",{class:"l"},"Maç"),h("th",{class:"c"},"Skor"),ps.map(p=>h("th",{class:"c"+(p.id===S.me?" mine":""),text:p.short})))),
       h("tbody",{},rows),
       h("tfoot",{},h("tr",{},h("td",{class:"l",colspan:"2"},S.week+". hafta puanı"),ps.map(p=>h("td",{class:"c"+(p.id===S.me?" mine":"")},fmtPts(totals[p.id].fin+totals[p.id].prov))))))),
-    h("p",{class:"small muted",style:"margin:0"},"Tahminler maç başlayınca burada görünür. "+(anyProv?"Çerçeveli puanlar geçicidir: canlı skora göre hesaplanır ve maç bitene kadar değişebilir. ":"")+"Hangi kategorilerin tuttuğunu görmek için puanın üzerine gel."))
+    h("p",{class:"small muted",style:"margin:0"},"Haftanın ilk maçı başlayınca o haftanın bütün tahminleri kilitlenir ve burada görünür. "+(anyProv?"Çerçeveli puanlar geçicidir: canlı skora göre hesaplanır ve maç bitene kadar değişebilir. ":"")+"Hangi kategorilerin tuttuğunu görmek için puanın üzerine gel."))
 }
 
 /* ---------- Standings ---------- */
