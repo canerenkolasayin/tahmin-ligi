@@ -1,0 +1,29 @@
+name: Score sync
+
+on:
+  schedule:
+    # Every 10 minutes, 09:00-22:59 UTC (12:00-01:59 Istanbul), every day.
+    - cron: "*/10 9-22 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: score-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sync scores from ESPN to Supabase
+        run: node sync/sync.mjs
+        env:
+          SUPABASE_URL: https://phmvejwbjqhbqzuaomgp.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}

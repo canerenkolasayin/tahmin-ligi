@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tahmin Ligi</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column like a matchday programme; scoreboard digit boxes are the signature element */
+:root{
+  --bg:#f2f4ef; --surface:#ffffff; --ink:#132119; --muted:#5b695f; --line:#d8dfd6; --chip:#e7ece4;
+  --accent:#c4122f; --accent-ink:#ffffff; --board:#132119; --board-ink:#f6f7f2;
+  --good:#1d7a48; --live:#c4122f; --miss:#8a948d;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1410; --surface:#151f19; --ink:#e6ece7; --muted:#95a49a; --line:#29362e; --chip:#1e2a23;
+  --accent:#ff4a5f; --accent-ink:#1a0306; --board:#e6ece7; --board-ink:#0d1410;
+  --good:#4cc38a; --live:#ff4a5f; --miss:#6f7b73; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1410; --surface:#151f19; --ink:#e6ece7; --muted:#95a49a; --line:#29362e; --chip:#1e2a23;
+  --accent:#ff4a5f; --accent-ink:#1a0306; --board:#e6ece7; --board-ink:#0d1410;
+  --good:#4cc38a; --live:#ff4a5f; --miss:#6f7b73; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+#app{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.brand h1 span{color:var(--accent)}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.me{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.me b{color:var(--ink);font-weight:600}
+.link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.banner{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);overflow-x:auto}
+.tab{background:none;border:0;padding:8px 14px 6px;font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-radius:6px 6px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block}
+@media (prefers-reduced-motion:no-preference){.dot{animation:pulse 1.4s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.35}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h2{font-family:var(--display);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--chip);border-radius:6px;padding:7px 14px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sel{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.45;cursor:default}
+.field{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 10px;min-width:0}
+.pin{width:120px;letter-spacing:.5em;font-family:var(--display);font-size:22px;font-weight:700;text-align:center}
+.err{color:var(--accent);font-size:13px}
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.weeknav .wk{font-family:var(--display);font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.03em;text-align:center}
+.weeknav .wk small{display:block;font-family:var(--body);font-weight:500;font-size:13px;color:var(--muted);letter-spacing:0;text-transform:none}
+.arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:18px;line-height:1;flex:none}
+.arrow:disabled{opacity:.3;cursor:default}
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.match{padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line)}
+.match:first-child{border-top:0}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.state{font-weight:600}
+.state.open{color:var(--good)} .state.live{color:var(--live)} .state.ft{color:var(--ink)} .state.lock{color:var(--muted)}
+.fixture{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+.team{font-family:var(--display);font-weight:600;font-size:21px;line-height:1.05;min-width:0;overflow-wrap:anywhere}
+.team.home{text-align:right}
+.score{display:flex;align-items:center;gap:5px}
+.score .sep{font-family:var(--display);font-weight:700;font-size:22px;color:var(--muted)}
+.digit{width:44px;height:48px;border-radius:6px;border:0;background:var(--board);color:var(--board-ink);font-family:var(--display);font-weight:700;font-size:28px;text-align:center;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.digit.livebox{background:var(--live);color:var(--accent-ink)}
+input.digit{padding:0}
+input.digit::placeholder{color:var(--board-ink);opacity:.3}
+.digit.ghost{background:var(--chip);color:var(--muted)}
+.under{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
+.pts{display:inline-block;font-family:var(--display);font-weight:700;font-size:15px;border-radius:999px;padding:0 8px;background:var(--good);color:var(--surface);font-variant-numeric:tabular-nums}
+.pts.zero{background:var(--miss)}
+.pts.prov{background:none;color:var(--live);box-shadow:inset 0 0 0 1.5px var(--live)}
+.tag{display:inline-block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:1px 6px;background:var(--chip);color:var(--muted)}
+.tag.hit{background:var(--good);color:var(--surface)}
+.savebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:10px 12px;border-bottom:2px solid var(--ink);white-space:nowrap}
+td{padding:11px 12px;text-align:right;border-top:1px solid var(--line);vertical-align:middle}
+th.l,td.l{text-align:left}
+th.c,td.c{text-align:center}
+td.rank{font-family:var(--display);font-weight:700;font-size:22px;width:44px;text-align:left}
+td.name{font-weight:600;font-size:16px;white-space:nowrap}
+td.total{font-family:var(--display);font-weight:700;font-size:24px}
+tr.leader td.rank{color:var(--accent)}
+tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-size:13px}
+.lt td.fx{white-space:nowrap}
+.lt .fx b{font-weight:600}
+.lt .fx div{font-size:12px;color:var(--muted)}
+.lt .sc{font-family:var(--display);font-weight:700;font-size:22px;white-space:nowrap}
+.lt .sc.live{color:var(--live)}
+.lt .sc small{display:block;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--muted)}
+.lt .sc.live small{color:var(--live)}
+.lt .pk{font-family:var(--display);font-weight:600;font-size:19px;white-space:nowrap}
+.lt .pk .pts{margin-left:6px}
+.lt tfoot td{border-top:2px solid var(--ink);font-family:var(--display);font-weight:700;font-size:20px}
+.lt th.mine,.lt td.mine{background:color-mix(in srgb,var(--chip) 70%,transparent)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:22px;text-transform:uppercase;margin-bottom:4px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.rule{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.rule b{font-family:var(--display);font-size:26px;line-height:1}
+.rule span{font-size:13px;color:var(--muted)}
+.toast{min-height:20px;font-size:13px;color:var(--muted)}
+.toast.err{color:var(--accent)}
+@media (max-width:600px){
+  .lt th,.lt td{padding:8px 4px}
+  .lt th{font-size:10px;letter-spacing:.04em;white-space:normal;line-height:1.2}
+  .lt td.fx{white-space:normal;min-width:84px}
+  .lt .pts{font-size:13px;padding:0 5px}
+  .lt .fx b{font-size:13px;line-height:1.2;display:block}
+  .lt .fx b span{display:block}
+  .lt .fx b .vs,.lt .fx div{display:none}
+  .lt .sc{font-size:18px}
+  .lt .pk{font-size:16px}
+  .lt .pk .pts{display:block;width:fit-content;margin:3px auto 0}
+  .lt tfoot td{font-size:17px}
+  th.opt,td.opt{display:none}
+  td.name{white-space:normal}
+}
+@media (max-width:480px){
+  .tab{font-size:16px;padding:7px 9px 5px}
+  .team{font-size:17px}
+  .digit{width:38px;height:42px;font-size:24px}
+  .brand h1{font-size:32px}
+}
+@media (prefers-reduced-motion:no-preference){.btn,.tab,.arrow{transition:background .15s,color .15s}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* Supabase project. The publishable key is meant to be public: it can only call the
+   three functions in supabase/schema.sql (get_state, login, save_picks). */
+const SUPABASE_URL="https://phmvejwbjqhbqzuaomgp.supabase.co";
+const SUPABASE_KEY="sb_publishable_ekb2O_nM_HgDmiOUxEeYBA_srQh1TF8";
+const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",150]];
+const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan durumu"]];
+
+const S={matches:[],players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
+  me:null,pin:null,tab:"predict",week:null,drafts:{},saving:false,loginFor:null,pinErr:"",busy:false,toast:"",toastErr:false};
+
+async function rpc(fn,args){
+  const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify(args||{})});
+  const body=await r.json().catch(()=>null);
+  if(!r.ok){const e=new Error((body&&body.message)||("HTTP "+r.status));e.status=r.status;throw e}
+  return body}
+const now=()=>Date.now()+S.skew;
+
+function lsGet(k){try{return localStorage.getItem("tl_"+k)}catch(e){return null}}
+function lsSet(k,v){try{v==null?localStorage.removeItem("tl_"+k):localStorage.setItem("tl_"+k,v)}catch(e){}}
+
+function h(tag,attrs,...kids){const e=document.createElement(tag);
+  for(const k in attrs||{}){const v=attrs[k];if(v==null||v===false)continue;
+    if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else if(k==="value")e.value=v;
+    else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?"":v)}
+  for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}
+  return e}
+
+/* ---------- match + scoring logic ---------- */
+const fmtDate=new Intl.DateTimeFormat("tr-TR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const fmtTime=new Intl.DateTimeFormat("tr-TR",{hour:"2-digit",minute:"2-digit"});
+const dshort=new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short"});
+const kick=m=>new Date(m.kickoff).getTime();
+const started=m=>m.state!=="pre"||now()>=kick(m);
+const isLive=m=>m.state==="in";
+const isFinal=m=>m.state==="post"&&m.done&&Number.isFinite(m.hs);
+const scored=m=>(isLive(m)||isFinal(m))&&Number.isFinite(m.hs)&&Number.isFinite(m.as);
+const sign=(a,b)=>Math.sign(a-b);
+function hits(p,hs,as){return{exact:p.h===hs&&p.a===as,winner:sign(p.h,p.a)===sign(hs,as),
+  btts:(p.h>0&&p.a>0)===(hs>0&&as>0)}}
+/* Each pool is shared equally between the players who got that category right. */
+function matchPoints(m){
+  if(!scored(m))return null;
+  const out={};
+  const entrants=S.players.filter(p=>(S.picks[p.id]||{})[m.id]);
+  for(const p of entrants)out[p.id]={total:0,hit:hits(S.picks[p.id][m.id],m.hs,m.as),cats:{}};
+  for(const [k,,pool] of POOLS){
+    const winners=entrants.filter(p=>out[p.id].hit[k]);
+    for(const p of winners){const share=pool/winners.length;out[p.id].cats[k]=share;out[p.id].total+=share}
+  }
+  return out}
+const fmtPts=x=>{const r=Math.round(x*10)/10;return Number.isInteger(r)?String(r):r.toFixed(1)};
+function untilText(ms){const mins=Math.max(0,Math.round(ms/60000));const d=Math.floor(mins/1440),hr=Math.floor(mins%1440/60),mi=mins%60;
+  return d?`${d} gün ${hr} sa`:hr?`${hr} sa ${mi} dk`:`${mi} dk`}
+function allMatches(){return S.matches}
+function weeksOf(ms){return[...new Set(ms.map(m=>m.week))].sort((a,b)=>a-b)}
+function defaultWeek(ms){const live=ms.find(isLive);if(live)return live.week;const nxt=ms.find(m=>!isFinal(m)&&m.state!=="post");return nxt?nxt.week:(ms.length?ms[ms.length-1].week:null)}
+const playerById=id=>S.players.find(p=>p.id===id);
+const loadedAll=()=>S.loaded;
+
+function toast(msg,err){S.toast=msg;S.toastErr=!!err;render();clearTimeout(toast.t);toast.t=setTimeout(()=>{S.toast="";render()},4500)}
+const isLocked=e=>e&&/locked/.test(e.message||"");
+const errMsg=e=>isLocked(e)?"Çok fazla hatalı PIN denemesi. 15 dakika sonra tekrar dene.":"Kaydedilemedi. Bağlantını kontrol edip tekrar dene.";
+
+/* ---------- render ---------- */
+function render(){
+  const a=document.activeElement,fid=a&&a.id;let sel=null;
+  try{if(fid&&a.selectionStart!=null)sel=[a.selectionStart,a.selectionEnd]}catch(e){}
+  const ms=allMatches();
+  const wks=weeksOf(ms);if(!wks.includes(S.week))S.week=defaultWeek(ms);
+  const anyLive=ms.some(isLive);
+  document.getElementById("app").replaceChildren(...[
+    header(),
+    S.slow&&!S.loaded?h("div",{class:"banner"},"Hâlâ bağlanıyor. İnternet bağlantını kontrol et."):null,
+    S.error?h("div",{class:"banner"},S.loaded?"Sunucuya ulaşılamıyor. Gösterilen skorlar güncel olmayabilir; tekrar deneniyor.":"Veriler yüklenemedi. Tekrar deneniyor."):null,
+    !S.me&&loadedAll()&&S.tab==="predict"?loginPanel():null,
+    h("div",{class:"tabs",role:"tablist"},TABS.map(([k,l])=>
+      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},k==="live"&&anyLive?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
+    !loadedAll()?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Yükleniyor"),"Fikstür ve tahminler getiriliyor.")):
+    !ms.length?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Henüz fikstür yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek.")):
+    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):predictView(ms,wks),
+    h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
+  if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+}
+function go(tab){S.tab=tab;if(location.hash!=="#"+tab)location.hash=tab;render()}
+
+function header(){
+  const p=S.me&&playerById(S.me);
+  const upd=S.syncedAt?new Date(S.syncedAt):null;
+  return h("div",{class:"top"},
+    h("div",{class:"brand"},h("h1",{},"Tahmin ",h("span",{},"Ligi")),
+      h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
+    p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),h("button",{class:"link",onclick:signOut},"çıkış yap")):
+      loadedAll()&&S.tab!=="predict"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
+}
+
+function loginPanel(){
+  const p=S.loginFor&&playerById(S.loginFor);
+  const pinIn=h("input",{id:"pin",class:"field pin",type:"password",inputmode:"numeric",maxlength:"4",autocomplete:"off","aria-label":"4 haneli PIN",
+    oninput:e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,4)},onkeydown:e=>{if(e.key==="Enter")tryLogin(pinIn.value)}});
+  const waiting=S.busy;
+  return h("section",{class:"panel"},
+    h("h2",{},"Kim tahmin yapıyor?"),
+    h("div",{class:"row"},S.players.map(x=>h("button",{class:"btn"+(x.id===S.loginFor?" sel":""),onclick:()=>{S.loginFor=x.id;S.pinErr="";render();setTimeout(()=>{const el=document.getElementById("pin");el&&el.focus()},0)},text:x.name}))),
+    p?h("div",{class:"row"},pinIn,h("button",{class:"btn primary",disabled:waiting,onclick:()=>tryLogin(pinIn.value)},"Giriş yap"),
+      h("span",{class:"small muted"},p.short+" için 4 haneli PIN'i gir")):h("p",{class:"small muted",style:"margin:0"},"Adını seç, sonra PIN'ini gir. Canlı tabloya ve puan durumuna giriş yapmadan da bakabilirsin."),
+    S.pinErr?h("div",{class:"err",role:"alert"},S.pinErr):null)
+}
+async function tryLogin(pin){
+  const p=playerById(S.loginFor);if(!p)return;
+  if(!/^\d{4}$/.test(pin)){S.pinErr="PIN 4 haneli olmalı.";render();return}
+  if(S.busy)return;S.busy=true;S.pinErr="";render();
+  try{const r=await login(p.id,pin);S.busy=false;
+    if(!r){S.pinErr="Bu PIN "+p.short+" için doğru değil.";render();return}
+    S.loginFor=null;toast("Hoş geldin, "+p.short+".")}
+  catch(e){S.busy=false;S.pinErr=isLocked(e)?"Çok fazla hatalı deneme. 15 dakika sonra tekrar dene.":"Sunucuya ulaşılamadı. Tekrar dene.";render()}}
+/* Checks the PIN on the server and loads this player's own predictions (including future ones). */
+async function login(pid,pin){
+  const r=await rpc("login",{p_player:pid,p_pin:pin});
+  if(!r||!r.ok)return false;
+  S.me=pid;S.pin=pin;S.drafts={};
+  const mine={};(r.picks||[]).forEach(x=>{mine[x.m]={h:x.h,a:x.a}});S.myPicks=mine;mergeMine();
+  lsSet("session",JSON.stringify({pid,pin}));return true}
+function mergeMine(){if(S.me&&S.myPicks)S.picks[S.me]={...(S.picks[S.me]||{}),...S.myPicks}}
+function signOut(){S.me=null;S.pin=null;S.myPicks=null;S.drafts={};lsSet("session",null);refresh()}
+async function restoreSession(){
+  let s=null;try{s=JSON.parse(lsGet("session")||"null")}catch(e){}
+  if(!s||!s.pid||!s.pin)return;
+  try{const ok=await login(s.pid,s.pin);if(!ok)lsSet("session",null);render()}catch(e){}}
+
+function weekNav(wks,list){
+  const i=wks.indexOf(S.week),first=list[0],last=list[list.length-1];
+  return h("div",{class:"weeknav"},
+    h("button",{class:"arrow","aria-label":"Önceki hafta",disabled:i<=0,onclick:()=>{S.week=wks[i-1];render()}},"‹"),
+    h("div",{class:"wk"},S.week+". Hafta",h("small",{},dshort.format(new Date(first.kickoff))+(dshort.format(new Date(first.kickoff))===dshort.format(new Date(last.kickoff))?"":" – "+dshort.format(new Date(last.kickoff))))),
+    h("button",{class:"arrow","aria-label":"Sonraki hafta",disabled:i>=wks.length-1,onclick:()=>{S.week=wks[i+1];render()}},"›"))}
+
+function statusChip(m){
+  if(isLive(m))return h("span",{class:"state live"},"Canlı · "+(m.clock||m.detail));
+  if(isFinal(m))return h("span",{class:"state ft"},"Maç sonu");
+  if(m.state==="post")return h("span",{class:"state lock"},/postp/i.test(m.detail||"")?"Ertelendi":/canc/i.test(m.detail||"")?"İptal edildi":"Oynanmadı");
+  if(started(m))return h("span",{class:"state lock"},"Başladı · skor bekleniyor");
+  return h("span",{class:"state open",title:"Tahminler maç başlayınca kilitlenir"},"Açık · "+untilText(kick(m)-now())+" kaldı")}
+
+/* ---------- Predict ---------- */
+function predictView(ms,wks){
+  const list=ms.filter(m=>m.week===S.week);
+  const me=S.me,open=list.filter(m=>!started(m));
+  const dirty=Object.keys(S.drafts).some(id=>open.some(m=>m.id===id));
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    weekNav(wks,list),
+    h("div",{class:"list"},list.map(m=>matchRow(m,me))),
+    me&&open.length?h("div",{class:"savebar"},
+      h("span",{class:"small muted"},`Açık ${open.length} maçın ${open.filter(m=>(S.picks[me]||{})[m.id]).length} tanesi tahmin edildi · tahminler maç başlayınca kilitlenir`),
+      h("button",{id:"save",class:"btn primary",disabled:!dirty||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":"Tahminleri kaydet")):null)
+}
+function digitIn(id,val,label,onv){
+  return h("input",{id,class:"digit",value:val,inputmode:"numeric",maxlength:"2",placeholder:"–","aria-label":label,autocomplete:"off",
+    oninput:e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,2);onv(e.target.value)}})}
+const digit=(v,cls)=>h("span",{class:"digit"+(cls?" "+cls:"")},v==null||v===""?"–":String(v));
+function matchRow(m,me){
+  const st=started(m),mine=me?(S.picks[me]||{})[m.id]:null,d=S.drafts[m.id];
+  let center;
+  if(scored(m))center=h("div",{class:"score"},digit(m.hs,isLive(m)?"livebox":""),h("span",{class:"sep"},":"),digit(m.as,isLive(m)?"livebox":""));
+  else if(!st&&me){
+    const hv=d?d.h:(mine?String(mine.h):""),av=d?d.a:(mine?String(mine.a):"");
+    const set=(k,v)=>{const cur=S.drafts[m.id]||{h:hv,a:av};cur[k]=v;S.drafts[m.id]=cur;const b=document.getElementById("save");if(b&&!S.saving)b.disabled=false};
+    center=h("div",{class:"score"},digitIn("ph-"+m.id,hv,m.home+" golü",v=>set("h",v)),h("span",{class:"sep"},":"),digitIn("pa-"+m.id,av,m.away+" golü",v=>set("a",v)));
+  } else center=h("div",{class:"score"},digit(mine?mine.h:null,"ghost"),h("span",{class:"sep"},":"),digit(mine?mine.a:null,"ghost"));
+  const under=[];
+  if(me&&scored(m)){
+    const pts=(matchPoints(m)||{})[me];
+    if(mine){under.push("Tahminin "+mine.h+"–"+mine.a);
+      POOLS.forEach(([k,label])=>under.push(h("span",{class:"tag"+(pts&&pts.hit[k]?" hit":"")},label)));
+      under.push(h("span",{class:"pts"+(isLive(m)?" prov":"")+(pts&&pts.total===0?" zero":"")},"+"+fmtPts(pts?pts.total:0)))}
+    else under.push("Bu maç için tahmin yapmadın")}
+  else if(me&&st)under.push(mine?"Tahminin kilitlendi":"Tahmin yapılmadı");
+  return h("div",{class:"match"},
+    h("div",{class:"meta"},h("span",{},fmtDate.format(new Date(m.kickoff))),statusChip(m)),
+    h("div",{class:"fixture"},h("div",{class:"team home",text:m.home}),center,h("div",{class:"team",text:m.away})),
+    under.length?h("div",{class:"under"},under):null)
+}
+async function savePicks(){
+  const me=S.me;if(!me||S.saving)return;
+  const changes=[];let incomplete=0;
+  for(const [id,d] of Object.entries(S.drafts)){const m=S.matches.find(x=>x.id===id);if(!m||started(m))continue;
+    if(d.h===""||d.a===""){incomplete++;continue}changes.push({m:id,h:+d.h,a:+d.a})}
+  if(!changes.length){toast("Kaydetmeden önce maçın iki skorunu da gir.",true);return}
+  S.saving=true;render();
+  try{const r=await rpc("save_picks",{p_player:me,p_pin:S.pin,p_picks:changes});
+    S.saving=false;
+    if(!r||!r.ok){if(r&&r.error==="bad_pin"){signOut();toast("PIN artık geçerli değil. Tekrar giriş yap.",true)}else toast("Kaydedilemedi.",true);return}
+    changes.forEach(c=>{delete S.drafts[c.m];S.myPicks=S.myPicks||{};S.myPicks[c.m]={h:c.h,a:c.a}});mergeMine();
+    const skipped=r.skipped+incomplete;
+    toast(`${r.saved} tahmin kaydedildi.`+(skipped?` ${skipped} tahmin kaydedilmedi (skoru eksik ya da maç başlamış).`:""));
+    refresh();
+  }catch(e){S.saving=false;toast(errMsg(e),true)}
+}
+
+/* ---------- Live table ---------- */
+function liveView(ms,wks){
+  const list=ms.filter(m=>m.week===S.week);
+  const ps=S.players;
+  const totals={};ps.forEach(p=>totals[p.id]={fin:0,prov:0});
+  const rows=list.map(m=>{
+    const st=started(m),pts=matchPoints(m)||{};
+    if(scored(m))ps.forEach(p=>{const x=pts[p.id];if(x){isFinal(m)?totals[p.id].fin+=x.total:totals[p.id].prov+=x.total}});
+    const sc=scored(m)?h("td",{class:"sc c"+(isLive(m)?" live":"")},m.hs+" – "+m.as,h("small",{},isLive(m)?(m.clock||"Canlı"):"MS")):
+      h("td",{class:"sc c"},h("small",{},m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):st?"Başladı":fmtTime.format(new Date(m.kickoff))));
+    return h("tr",{},
+      h("td",{class:"fx l"},h("b",{},h("span",{text:m.home}),h("span",{class:"vs"}," – "),h("span",{text:m.away})),h("div",{},fmtDate.format(new Date(m.kickoff)))),
+      sc,
+      ps.map(p=>{const x=(S.picks[p.id]||{})[m.id],cls="pk c"+(p.id===S.me?" mine":"");
+        if(!st){const inn=x||S.submitted.has(p.id+"|"+m.id);
+          return h("td",{class:cls,title:inn?"Tahmin yapıldı, maç başlayınca görünecek":"Henüz tahmin yok"},h("span",{class:"small muted"},inn?"✓":"–"))}
+        if(!x)return h("td",{class:cls,title:"Tahmin yok"},h("span",{class:"small muted"},"–"));
+        const r=pts[p.id];
+        return h("td",{class:cls},x.h+"–"+x.a,r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":""),title:POOLS.filter(([k])=>r.hit[k]).map(([,l])=>l).join(", ")||"İsabet yok"},fmtPts(r.total)):null)}))});
+  const anyProv=Object.values(totals).some(t=>t.prov>0);
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    weekNav(wks,list),
+    h("div",{class:"tablewrap"},h("table",{class:"lt"},
+      h("thead",{},h("tr",{},h("th",{class:"l"},"Maç"),h("th",{class:"c"},"Skor"),ps.map(p=>h("th",{class:"c"+(p.id===S.me?" mine":""),text:p.short})))),
+      h("tbody",{},rows),
+      h("tfoot",{},h("tr",{},h("td",{class:"l",colspan:"2"},S.week+". hafta puanı"),ps.map(p=>h("td",{class:"c"+(p.id===S.me?" mine":"")},fmtPts(totals[p.id].fin+totals[p.id].prov))))))),
+    h("p",{class:"small muted",style:"margin:0"},"Tahminler maç başlayınca burada görünür. "+(anyProv?"Çerçeveli puanlar geçicidir: canlı skora göre hesaplanır ve maç bitene kadar değişebilir. ":"")+"Hangi kategorilerin tuttuğunu görmek için puanın üzerine gel."))
+}
+
+/* ---------- Standings ---------- */
+function standingsView(ms){
+  const fin=ms.filter(isFinal);
+  const rows=S.players.map(p=>{const r={p,pts:0,wk:0,n:0,c:{exact:0,winner:0,btts:0}};return r});
+  const byId=Object.fromEntries(rows.map(r=>[r.p.id,r]));
+  for(const m of ms){const pts=matchPoints(m);if(!pts)continue;
+    for(const pid in pts){const r=byId[pid];if(!r)continue;
+      if(m.week===S.week)r.wk+=pts[pid].total;
+      if(!isFinal(m))continue;
+      r.pts+=pts[pid].total;r.n++;POOLS.forEach(([k])=>{if(pts[pid].hit[k])r.c[k]++})}}
+  rows.sort((a,b)=>b.pts-a.pts||b.c.exact-a.c.exact||a.p.name.localeCompare(b.p.name));
+  let rank=0,prev=null;rows.forEach((r,i)=>{const key=fmtPts(r.pts)+"/"+r.c.exact;if(key!==prev){rank=i+1;prev=key}r.rank=rank});
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    h("div",{class:"tablewrap"},h("table",{},
+      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),h("th",{class:"opt",title:"Tam skor isabeti"},"Tam skor"),h("th",{class:"opt",title:"Doğru kazanan veya beraberlik"},"Kazanan"),h("th",{class:"opt",title:"Karşılıklı gol doğru tahmini"},"KG"),h("th",{class:"opt"},"Oynanan"),h("th",{},S.week+". hf"),h("th",{},"Puan"))),
+      h("tbody",{},rows.map(r=>h("tr",{class:(r.rank===1&&r.pts>0?"leader ":"")+(r.p.id===S.me?"isme":"")},
+        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),h("td",{class:"opt"},r.c.exact),h("td",{class:"opt"},r.c.winner),h("td",{class:"opt"},r.c.btts),h("td",{class:"opt"},r.n),h("td",{},fmtPts(r.wk)),h("td",{class:"total"},fmtPts(r.pts))))))),
+    h("section",{class:"panel"},h("h2",{},"Puanlama"),
+      h("p",{class:"small muted",style:"margin:0"},"Her maçta üç puan havuzu var. Her havuz, o kategoriyi doğru bilen oyuncular arasında eşit bölünür; doğru olup olmadığı tahmin ettiğin skordan hesaplanır. Kimse bilemezse o puanlar kimseye verilmez."),
+      h("div",{class:"rules"},POOLS.map(([k,l,pool])=>h("div",{class:"rule"},h("b",{},String(pool)),h("span",{},l+{exact:" (iki takımın golü de doğru)",winner:" (ev sahibi, deplasman veya beraberlik)",btts:" (var ya da yok doğru)"}[k])))),
+      h("p",{class:"small muted",style:"margin:0"},`Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
+}
+
+/* ---------- data ---------- */
+/* Polls get_state: every 30 s while a match is live, otherwise every 2 minutes,
+   and right away when the tab becomes visible again. */
+let pollTimer=null,inFlight=false;
+async function refresh(){
+  if(inFlight)return;inFlight=true;clearTimeout(pollTimer);
+  try{
+    const st=await rpc("get_state");
+    S.skew=Date.parse(st.now)-Date.now();
+    S.players=st.players||[];
+    S.matches=(st.matches||[]).map(m=>({...m,hs:m.hs==null?null:Number(m.hs),as:m.as==null?null:Number(m.as)}));
+    const picks={};(st.picks||[]).forEach(x=>{(picks[x.p]=picks[x.p]||{})[x.m]={h:x.h,a:x.a}});S.picks=picks;mergeMine();
+    S.submitted=new Set((st.submitted||[]).map(x=>x.p+"|"+x.m));
+    S.syncedAt=st.synced_at;S.loaded=true;S.error=false;S.slow=false;
+    if(S.me&&!playerById(S.me))signOut();
+  }catch(e){S.error=true}
+  inFlight=false;render();
+  pollTimer=setTimeout(refresh,S.matches.some(isLive)?30000:120000);
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
+
+S.tab=(location.hash||"").slice(1);if(!TABS.some(([k])=>k===S.tab))S.tab="predict";
+window.addEventListener("hashchange",()=>{const t=location.hash.slice(1);if(TABS.some(([k])=>k===t)){S.tab=t;render()}});
+render();
+setTimeout(()=>{if(!S.loaded){S.slow=true;render()}},10000);
+setInterval(render,30000);
+refresh().then(restoreSession);
+</script>
+</body>
+</html>
