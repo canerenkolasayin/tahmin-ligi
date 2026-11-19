@@ -107,6 +107,11 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .lt .pk .pts{margin-left:6px}
 .lt tfoot td{border-top:2px solid var(--ink);font-family:var(--display);font-weight:700;font-size:20px}
 .lt th.mine,.lt td.mine{background:color-mix(in srgb,var(--chip) 70%,transparent)}
+.league td,.league th{padding:9px 8px}
+.league td.rank{font-size:18px;width:32px}
+.league td.name{font-size:15px}
+.league td.total{font-size:20px}
+.league tr.zone td.rank{color:var(--accent)}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
 .empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:22px;text-transform:uppercase;margin-bottom:4px}
 .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -129,9 +134,12 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
   .lt tfoot td{font-size:17px}
   th.opt,td.opt{display:none}
   td.name{white-space:normal}
+  .league td,.league th{padding:8px 5px}
+  .league td.name{font-size:14px}
 }
 @media (max-width:480px){
-  .tab{font-size:16px;padding:7px 9px 5px}
+  .tabs{gap:2px}
+  .tab{flex:1 1 0;justify-content:center;text-align:center;white-space:normal;line-height:1.1;font-size:14px;padding:7px 4px 5px;letter-spacing:.02em}
   .team{font-size:17px}
   .digit{width:38px;height:42px;font-size:24px}
   .brand h1{font-size:32px}
@@ -148,7 +156,7 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 const SUPABASE_URL="https://phmvejwbjqhbqzuaomgp.supabase.co";
 const SUPABASE_KEY="sb_publishable_ekb2O_nM_HgDmiOUxEeYBA_srQh1TF8";
 const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",150]];
-const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan durumu"]];
+const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"]];
 
 const S={matches:[],players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
   me:null,pin:null,tab:"predict",week:null,drafts:{},saving:false,loginFor:null,pinErr:"",busy:false,toast:"",toastErr:false};
@@ -226,7 +234,7 @@ function render(){
       h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},k==="live"&&anyLive?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
     !loadedAll()?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Yükleniyor"),"Fikstür ve tahminler getiriliyor.")):
     !ms.length?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Henüz fikstür yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek.")):
-    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):predictView(ms,wks),
+    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):predictView(ms,wks),
     h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
 }
@@ -251,7 +259,7 @@ function loginPanel(){
     h("h2",{},"Kim tahmin yapıyor?"),
     h("div",{class:"row"},S.players.map(x=>h("button",{class:"btn"+(x.id===S.loginFor?" sel":""),onclick:()=>{S.loginFor=x.id;S.pinErr="";render();setTimeout(()=>{const el=document.getElementById("pin");el&&el.focus()},0)},text:x.name}))),
     p?h("div",{class:"row"},pinIn,h("button",{class:"btn primary",disabled:waiting,onclick:()=>tryLogin(pinIn.value)},"Giriş yap"),
-      h("span",{class:"small muted"},p.short+" için 4 haneli PIN'i gir")):h("p",{class:"small muted",style:"margin:0"},"Adını seç, sonra PIN'ini gir. Canlı tabloya ve puan durumuna giriş yapmadan da bakabilirsin."),
+      h("span",{class:"small muted"},p.short+" için 4 haneli PIN'i gir")):h("p",{class:"small muted",style:"margin:0"},"Adını seç, sonra PIN'ini gir. Canlı tabloya ve puan tablolarına giriş yapmadan da bakabilirsin."),
     S.pinErr?h("div",{class:"err",role:"alert"},S.pinErr):null)
 }
 async function tryLogin(pin){
@@ -396,6 +404,52 @@ function standingsView(ms){
       h("p",{class:"small muted",style:"margin:0"},"Her maçta üç puan havuzu var. Her havuz, o kategoriyi doğru bilen oyuncular arasında eşit bölünür; doğru olup olmadığı tahmin ettiğin skordan hesaplanır. Kimse bilemezse o puanlar kimseye verilmez."),
       h("div",{class:"rules"},POOLS.map(([k,l,pool])=>h("div",{class:"rule"},h("b",{},String(pool)),h("span",{},l+{exact:" (iki takımın golü de doğru)",winner:" (ev sahibi, deplasman veya beraberlik)",btts:" (var ya da yok doğru)"}[k])))),
       h("p",{class:"small muted",style:"margin:0"},`Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
+}
+
+/* ---------- Süper Lig table ----------
+   Built from the finished matches already in the database: 3 points a win, 1 a draw.
+   Ties follow the Süper Lig rule: once the tied teams have played each other home and away,
+   the head-to-head points and then head-to-head goal difference decide; otherwise (or if still level)
+   overall goal difference, then goals scored. */
+function tieOrder(group,fin){
+  const ids=new Set(group.map(r=>r.team));
+  const mutual=fin.filter(m=>ids.has(m.home)&&ids.has(m.away));
+  const complete=group.every(x=>group.every(y=>x===y||mutual.some(m=>m.home===x.team&&m.away===y.team)));
+  const hh={};group.forEach(r=>hh[r.team]={p:0,av:0});
+  if(complete)for(const m of mutual){const s=sign(m.hs,m.as);
+    hh[m.home].av+=m.hs-m.as;hh[m.away].av+=m.as-m.hs;
+    if(s>0)hh[m.home].p+=3;else if(s<0)hh[m.away].p+=3;else{hh[m.home].p++;hh[m.away].p++}}
+  group.forEach(r=>r.h2h=complete);
+  return group.sort((x,y)=>hh[y.team].p-hh[x.team].p||hh[y.team].av-hh[x.team].av||y.av-x.av||y.a-x.a||x.team.localeCompare(y.team,"tr"))}
+function leagueView(ms){
+  const T={};
+  const row=n=>T[n]||(T[n]={team:n,o:0,g:0,b:0,m:0,a:0,y:0,form:[]});
+  ms.forEach(m=>{row(m.home);row(m.away)});
+  for(const m of ms){if(!isFinal(m)||!Number.isFinite(m.as))continue;
+    const H=row(m.home),A=row(m.away);
+    H.o++;A.o++;H.a+=m.hs;H.y+=m.as;A.a+=m.as;A.y+=m.hs;
+    const s=sign(m.hs,m.as);
+    if(s>0){H.g++;A.m++;H.form.push("G");A.form.push("M")}
+    else if(s<0){A.g++;H.m++;H.form.push("M");A.form.push("G")}
+    else{H.b++;A.b++;H.form.push("B");A.form.push("B")}}
+  const fin=ms.filter(m=>isFinal(m)&&Number.isFinite(m.as));
+  const byPts={};Object.values(T).forEach(r=>{r.av=r.a-r.y;r.p=r.g*3+r.b;(byPts[r.p]=byPts[r.p]||[]).push(r)});
+  const rows=Object.keys(byPts).map(Number).sort((a,b)=>b-a).flatMap(p=>byPts[p].length>1?tieOrder(byPts[p],fin):byPts[p]);
+  const n=rows.length,played=ms.filter(isFinal).length;
+  const sgn=v=>v>0?"+"+v:String(v);
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    h("div",{class:"tablewrap"},h("table",{class:"league"},
+      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Takım"),
+        h("th",{title:"Oynanan"},"O"),h("th",{title:"Galibiyet"},"G"),h("th",{title:"Beraberlik"},"B"),h("th",{title:"Mağlubiyet"},"M"),
+        h("th",{class:"opt",title:"Atılan gol"},"A"),h("th",{class:"opt",title:"Yenilen gol"},"Y"),h("th",{title:"Averaj"},"AV"),
+        h("th",{class:"opt l",title:"Son 5 maç"},"Form"),h("th",{},"P"))),
+      h("tbody",{},rows.map((r,i)=>h("tr",{class:i===0&&r.o?"zone":null},
+        h("td",{class:"rank"},i+1),h("td",{class:"name l",text:r.team,title:r.h2h?"Puan eşitliği ikili averajla ayrıldı":null}),
+        h("td",{},r.o),h("td",{},r.g),h("td",{},r.b),h("td",{},r.m),
+        h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),h("td",{},sgn(r.av)),
+        h("td",{class:"opt l"},h("span",{class:"small muted"},r.form.slice(-5).join(" ")||"–")),
+        h("td",{class:"total"},r.p)))))),
+    h("p",{class:"small muted",style:"margin:0"},`${n} takım · ${played} maç tamamlandı. Tablo biten maçların skorlarından hesaplanır; canlı maçlar bitince eklenir. Puan eşitliğinde, takımlar birbiriyle iç sahada ve deplasmanda oynamışsa önce aralarındaki maçların puanına, sonra ikili averaja bakılır; oynamamışlarsa ya da hâlâ eşitlerse genel averaj, sonra atılan gol. Varsa puan silme cezaları tabloya yansımaz.`))
 }
 
 /* ---------- data ---------- */
