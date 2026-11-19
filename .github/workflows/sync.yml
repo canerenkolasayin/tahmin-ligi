@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 20
       - name: Sync scores from ESPN to Supabase
-        run: node sync/sync.mjs
+        run: node sync.mjs
         env:
           SUPABASE_URL: https://phmvejwbjqhbqzuaomgp.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
