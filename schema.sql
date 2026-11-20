@@ -6,8 +6,8 @@
 --     so the web page cannot read or write any table directly.
 --   * The page only calls three functions: get_state, login and save_picks.
 --   * PINs are stored as bcrypt hashes and checked inside the database.
---   * Predictions can only be saved before kickoff, and other players' predictions
---     are only returned after kickoff.
+--   * A week locks when its first match kicks off: from then on no prediction for any
+--     match of that week can be saved, and everyone's predictions for it are returned.
 --   * The score sync (GitHub Actions) uses the secret key, which can write matches and meta.
 
 create extension if not exists pgcrypto with schema extensions;
@@ -35,6 +35,15 @@ create table if not exists public.matches (
   detail      text not null default '',
   updated_at  timestamptz not null default now()
 );
+
+-- Champions League support (added later; safe to run on an existing database).
+--   comp:        'tsl' = Süper Lig, 'ucl' = Champions League
+--   predictable: whether players predict this match (all Süper Lig matches; only
+--                Turkish teams' Champions League matches)
+--   stage:       ESPN round slug for Champions League matches (league-phase, round-of-16, ...)
+alter table public.matches add column if not exists comp        text    not null default 'tsl';
+alter table public.matches add column if not exists predictable boolean not null default true;
+alter table public.matches add column if not exists stage       text    not null default '';
 
 create table if not exists public.picks (
   player_id   text not null references public.players(id) on delete cascade,
@@ -98,9 +107,25 @@ end
 $$;
 revoke all on function public._verify_pin(text, text) from public, anon, authenticated;
 
+-- ---------- week lock (internal) ----------
+-- A week (Süper Lig) or matchday (Champions League) is locked once any of its predicted
+-- matches has kicked off or is live, i.e. from its first predicted kickoff.
+create or replace function public._week_locked(p_comp text, p_week int)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from matches
+                  where comp = p_comp and week = p_week and predictable
+                    and (kickoff <= now() or state = 'in'));
+$$;
+revoke all on function public._week_locked(text, int) from public, anon, authenticated;
+
 -- ---------- public functions ----------
--- Everything the page shows. Other players' scores are only included after kickoff;
--- before kickoff the page only learns that a prediction exists.
+-- Everything the page shows. Other players' scores are only included once the week
+-- is locked; before that the page only learns that a prediction exists.
 create or replace function public.get_state()
 returns json
 language sql
@@ -112,14 +137,16 @@ as $$
     'players', (select coalesce(json_agg(json_build_object('id', id, 'name', name, 'short', short, 'ord', ord) order by ord), '[]'::json) from players),
     'matches', (select coalesce(json_agg(json_build_object(
                   'id', id, 'week', week, 'kickoff', kickoff, 'home', home, 'away', away,
-                  'hs', hs, 'as', as_, 'state', state, 'done', done, 'clock', clock, 'detail', detail)
+                  'hs', hs, 'as', as_, 'state', state, 'done', done, 'clock', clock, 'detail', detail,
+                  'comp', comp, 'predictable', predictable, 'stage', stage)
                   order by kickoff, id), '[]'::json) from matches),
     'picks',   (select coalesce(json_agg(json_build_object('p', p.player_id, 'm', p.match_id, 'h', p.h, 'a', p.a)), '[]'::json)
                   from picks p join matches m on m.id = p.match_id
-                 where m.kickoff <= now() or m.state <> 'pre'),
+                 where _week_locked(m.comp, m.week)),
     'submitted', (select coalesce(json_agg(json_build_object('p', p.player_id, 'm', p.match_id)), '[]'::json)
                   from picks p join matches m on m.id = p.match_id
-                 where m.kickoff > now() and m.state = 'pre'),
+                 where not _week_locked(m.comp, m.week)),
+    'ucl_table', (select value::json from meta where key = 'ucl_standings'),
     'synced_at', (select value from meta where key = 'synced_at'),
     'now', now()
   );
@@ -146,7 +173,7 @@ end
 $$;
 
 -- Saves up to 50 predictions: [{"m": "<match id>", "h": 2, "a": 1}, ...]
--- Matches that have kicked off, or scores outside 0-20, are skipped.
+-- Matches in a locked week (its first match has kicked off), or scores outside 0-20, are skipped.
 create or replace function public.save_picks(p_player text, p_pin text, p_picks jsonb)
 returns json
 language plpgsql
@@ -169,7 +196,8 @@ begin
   for r in select * from jsonb_array_elements(p_picks) loop
     select * into v_m from matches where id = r->>'m';
     if not found
-       or v_m.kickoff <= now() or v_m.state <> 'pre'
+       or not v_m.predictable
+       or v_m.kickoff <= now() or v_m.state <> 'pre' or _week_locked(v_m.comp, v_m.week)
        or coalesce(r->>'h', '') !~ '^[0-9]{1,2}$' or coalesce(r->>'a', '') !~ '^[0-9]{1,2}$'
        or (r->>'h')::int > 20 or (r->>'a')::int > 20 then
       v_skip := v_skip + 1;
@@ -184,6 +212,9 @@ begin
   return json_build_object('ok', true, 'saved', v_saved, 'skipped', v_skip);
 end
 $$;
+
+-- The one-argument lock check from before Champions League support is no longer used.
+drop function if exists public._week_locked(int);
 
 revoke all on function public.get_state() from public;
 revoke all on function public.login(text, text) from public;

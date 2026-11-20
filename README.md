@@ -7,8 +7,11 @@ A Süper Lig 2026–27 score-prediction league for four friends.
   (`get_state`, `login`, `save_picks`). PINs are checked in the database. A week locks at its first kickoff:
   no prediction for that week can be changed after that, and only then are other players' predictions returned.
 - **Scores:** `.github/workflows/sync.yml` runs `sync.mjs` every 10 minutes (09:00–22:59 UTC).
-  It reads ESPN's public Süper Lig scoreboard and upserts the matches into Supabase.
-  It needs the repository secret `SUPABASE_SECRET_KEY`.
+  It reads ESPN's public Süper Lig and Champions League scoreboards (plus the Champions League table)
+  and upserts them into Supabase. It needs the repository secret `SUPABASE_SECRET_KEY`.
+- **Champions League:** the "Şampiyonlar Ligi" tab shows every match and the league-phase table.
+  Only matches involving a Süper Lig team are predicted; they score like Süper Lig matches and count
+  in the main Puan Tablosu. Each matchday locks at its first predicted kickoff.
 
 ## Scoring
 

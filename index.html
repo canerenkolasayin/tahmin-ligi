@@ -54,6 +54,8 @@ button{cursor:pointer}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.sel{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .btn:disabled{opacity:.45;cursor:default}
+a.btn{text-decoration:none;display:inline-block}
+.sharetext{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--body);font-size:13px;line-height:1.45;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-height:260px;overflow:auto}
 .field{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 10px;min-width:0}
 .pin{width:120px;letter-spacing:.5em;font-family:var(--display);font-size:22px;font-weight:700;text-align:center}
 .err{color:var(--accent);font-size:13px}
@@ -112,6 +114,26 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .league td.name{font-size:15px}
 .league td.total{font-size:20px}
 .league tr.zone td.rank{color:var(--accent)}
+.sub{font-family:var(--display);font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:4px 0 0}
+.matchwrap{border-top:1px solid var(--line);padding-bottom:12px}
+.matchwrap:first-child{border-top:0}
+.matchwrap .match{border-top:0}
+.pick{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border-radius:999px;padding:2px 4px 2px 10px;color:var(--ink);font-variant-numeric:tabular-nums}
+.pick b{font-weight:600}
+.pick:not(:has(.pts)){padding-right:10px}
+.pick.mine{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.crow{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid var(--line);font-size:14px}
+.crow:first-child{border-top:0}
+.crow .h{text-align:right;font-weight:600}
+.crow .a{font-weight:600}
+.crow .s{font-family:var(--display);font-weight:700;font-size:19px;text-align:center;min-width:64px;line-height:1.1}
+.crow .s small{display:block;font-family:var(--body);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.03em}
+.crow .s.live,.crow .s.live small{color:var(--live)}
+.ucltable tr.z1 td.rank{color:var(--good)}
+.ucltable tr.z3 td.rank{color:var(--miss)}
+.ucltable tr.tr td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.key{display:inline-block;font-weight:700;margin-right:4px}
+.key.z1{color:var(--good)} .key.z3{color:var(--miss)}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
 .empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:22px;text-transform:uppercase;margin-bottom:4px}
 .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -156,9 +178,9 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 const SUPABASE_URL="https://phmvejwbjqhbqzuaomgp.supabase.co";
 const SUPABASE_KEY="sb_publishable_ekb2O_nM_HgDmiOUxEeYBA_srQh1TF8";
 const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",150]];
-const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"]];
+const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"],["ucl","Şampiyonlar Ligi"]];
 
-const S={matches:[],players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
+const S={matches:[],ucl:[],uclTable:[],uclWeek:null,players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
   me:null,pin:null,tab:"predict",week:null,drafts:{},saving:false,loginFor:null,pinErr:"",busy:false,toast:"",toastErr:false};
 
 async function rpc(fn,args){
@@ -184,10 +206,14 @@ const fmtTime=new Intl.DateTimeFormat("tr-TR",{hour:"2-digit",minute:"2-digit"})
 const dshort=new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short"});
 const kick=m=>new Date(m.kickoff).getTime();
 const started=m=>m.state!=="pre"||now()>=kick(m);
-/* A week locks at its first kickoff: no more changes, and everyone's predictions become visible. */
-const lockAt=w=>Math.min(...S.matches.filter(m=>m.week===w).map(kick));
-const weekLocked=w=>S.matches.some(m=>m.week===w&&(m.state==="in"||now()>=kick(m)));
-const locked=m=>started(m)||weekLocked(m.week);
+/* A week (Süper Lig) or matchday (Champions League) locks at its first predicted kickoff:
+   no more changes, and everyone's predictions become visible. */
+const isUcl=m=>m.comp==="ucl";
+const poolOf=m=>isUcl(m)?S.ucl:S.matches;
+const canPredict=m=>m.predictable!==false;
+const lockAt=(w,ms=S.matches)=>Math.min(...ms.filter(m=>m.week===w&&canPredict(m)).map(kick));
+const weekLocked=(w,ms=S.matches)=>ms.some(m=>m.week===w&&canPredict(m)&&(m.state==="in"||now()>=kick(m)));
+const locked=m=>started(m)||weekLocked(m.week,poolOf(m));
 const isLive=m=>m.state==="in";
 const isFinal=m=>m.state==="post"&&m.done&&Number.isFinite(m.hs);
 const scored=m=>(isLive(m)||isFinal(m))&&Number.isFinite(m.hs)&&Number.isFinite(m.as);
@@ -224,17 +250,17 @@ function render(){
   try{if(fid&&a.selectionStart!=null)sel=[a.selectionStart,a.selectionEnd]}catch(e){}
   const ms=allMatches();
   const wks=weeksOf(ms);if(!wks.includes(S.week))S.week=defaultWeek(ms);
-  const anyLive=ms.some(isLive);
+  const anyLive=ms.some(isLive),uclLive=S.ucl.some(isLive);
   document.getElementById("app").replaceChildren(...[
     header(),
     S.slow&&!S.loaded?h("div",{class:"banner"},"Hâlâ bağlanıyor. İnternet bağlantını kontrol et."):null,
     S.error?h("div",{class:"banner"},S.loaded?"Sunucuya ulaşılamıyor. Gösterilen skorlar güncel olmayabilir; tekrar deneniyor.":"Veriler yüklenemedi. Tekrar deneniyor."):null,
-    !S.me&&loadedAll()&&S.tab==="predict"?loginPanel():null,
+    !S.me&&loadedAll()&&(S.tab==="predict"||S.tab==="ucl")?loginPanel():null,
     h("div",{class:"tabs",role:"tablist"},TABS.map(([k,l])=>
-      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},k==="live"&&anyLive?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
+      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},(k==="live"&&anyLive)||(k==="ucl"&&uclLive)?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
     !loadedAll()?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Yükleniyor"),"Fikstür ve tahminler getiriliyor.")):
     !ms.length?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Henüz fikstür yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek.")):
-    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):predictView(ms,wks),
+    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):S.tab==="ucl"?uclView():predictView(ms,wks),
     h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
 }
@@ -247,7 +273,7 @@ function header(){
     h("div",{class:"brand"},h("h1",{},"Tahmin ",h("span",{},"Ligi")),
       h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
     p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),h("button",{class:"link",onclick:signOut},"çıkış yap")):
-      loadedAll()&&S.tab!=="predict"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
+      loadedAll()&&S.tab!=="predict"&&S.tab!=="ucl"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
 }
 
 function loginPanel(){
@@ -284,20 +310,21 @@ async function restoreSession(){
   if(!s||!s.pid||!s.pin)return;
   try{const ok=await login(s.pid,s.pin);if(!ok)lsSet("session",null);render()}catch(e){}}
 
-function weekNav(wks,list){
-  const i=wks.indexOf(S.week),first=list[0],last=list[list.length-1];
+function weekNav(wks,list,key="week",title=w=>w+". Hafta"){
+  const i=wks.indexOf(S[key]),first=list[0],last=list[list.length-1];
   return h("div",{class:"weeknav"},
-    h("button",{class:"arrow","aria-label":"Önceki hafta",disabled:i<=0,onclick:()=>{S.week=wks[i-1];render()}},"‹"),
-    h("div",{class:"wk"},S.week+". Hafta",h("small",{},dshort.format(new Date(first.kickoff))+(dshort.format(new Date(first.kickoff))===dshort.format(new Date(last.kickoff))?"":" – "+dshort.format(new Date(last.kickoff))))),
-    h("button",{class:"arrow","aria-label":"Sonraki hafta",disabled:i>=wks.length-1,onclick:()=>{S.week=wks[i+1];render()}},"›"))}
+    h("button",{class:"arrow","aria-label":"Önceki",disabled:i<=0,onclick:()=>{S[key]=wks[i-1];render()}},"‹"),
+    h("div",{class:"wk"},title(S[key]),h("small",{},dshort.format(new Date(first.kickoff))+(dshort.format(new Date(first.kickoff))===dshort.format(new Date(last.kickoff))?"":" – "+dshort.format(new Date(last.kickoff))))),
+    h("button",{class:"arrow","aria-label":"Sonraki",disabled:i>=wks.length-1,onclick:()=>{S[key]=wks[i+1];render()}},"›"))}
 
 function statusChip(m){
   if(isLive(m))return h("span",{class:"state live"},"Canlı · "+(m.clock||m.detail));
   if(isFinal(m))return h("span",{class:"state ft"},"Maç sonu");
   if(m.state==="post")return h("span",{class:"state lock"},/postp/i.test(m.detail||"")?"Ertelendi":/canc/i.test(m.detail||"")?"İptal edildi":"Oynanmadı");
   if(started(m))return h("span",{class:"state lock"},"Başladı · skor bekleniyor");
+  if(!canPredict(m))return h("span",{class:"state lock"},untilText(kick(m)-now())+" sonra");
   if(locked(m))return h("span",{class:"state lock",title:"Haftanın ilk maçı başladığı için tahminler kilitlendi"},"Kilitli · başlamasına "+untilText(kick(m)-now()));
-  return h("span",{class:"state open",title:"Tahminler haftanın ilk maçı başlayınca kilitlenir"},"Açık · kilide "+untilText(lockAt(m.week)-now()))}
+  return h("span",{class:"state open",title:"Tahminler haftanın ilk maçı başlayınca kilitlenir"},"Açık · kilide "+untilText(lockAt(m.week,poolOf(m))-now()))}
 
 /* ---------- Predict ---------- */
 function predictView(ms,wks){
@@ -340,7 +367,7 @@ function matchRow(m,me){
 async function savePicks(){
   const me=S.me;if(!me||S.saving)return;
   const changes=[];let incomplete=0;
-  for(const [id,d] of Object.entries(S.drafts)){const m=S.matches.find(x=>x.id===id);if(!m||locked(m))continue;
+  for(const [id,d] of Object.entries(S.drafts)){const m=S.matches.find(x=>x.id===id)||S.ucl.find(x=>x.id===id);if(!m||locked(m)||!canPredict(m))continue;
     if(d.h===""||d.a===""){incomplete++;continue}changes.push({m:id,h:+d.h,a:+d.a})}
   if(!changes.length){toast("Kaydetmeden önce maçın iki skorunu da gir.",true);return}
   S.saving=true;render();
@@ -384,13 +411,61 @@ function liveView(ms,wks){
 }
 
 /* ---------- Standings ---------- */
+/* ---------- WhatsApp share ----------
+   Last finished week's points + overall table up to that week, and when the next week locks. */
+function shareText(ms){
+  const wks=weeksOf(ms);
+  const doneWeek=w=>ms.filter(m=>m.week===w).every(m=>m.state==="post");
+  const last=[...wks].reverse().find(doneWeek);
+  const next=wks.find(w=>!weekLocked(w));
+  const L=["*Tahmin Ligi* ⚽"];
+  const table=(score)=>{const rows=S.players.map(p=>({p,v:score[p.id]||0})).sort((a,b)=>b.v-a.v||a.p.name.localeCompare(b.p.name,"tr"));
+    let rank=0,prev=null;return rows.map((r,i)=>{if(r.v!==prev){rank=i+1;prev=r.v}return `${rank}. ${r.p.short} — ${fmtPts(r.v)}`})};
+  const endOf=w=>Math.max(...ms.filter(m=>m.week===w).map(kick));
+  const missingLine=list=>{const missing=S.players.map(p=>({p,n:list.filter(m=>(S.picks[p.id]||{})[m.id]||S.submitted.has(p.id+"|"+m.id)).length})).filter(x=>x.n<list.length);
+    return missing.length?"Eksik tahmini olanlar: "+missing.map(x=>`${x.p.short} (${x.n}/${list.length})`).join(", "):"Herkes tahminlerini girdi 👏"};
+  if(last!=null){
+    // The week's points include Champions League matches played since the previous week ended.
+    const from=wks.indexOf(last)>0?endOf(wks[wks.indexOf(last)-1]):-Infinity,to=endOf(last);
+    const cl=S.ucl.filter(m=>canPredict(m)&&isFinal(m)&&kick(m)<=to);
+    const wk={},tot={};
+    for(const m of [...ms.filter(m=>m.week<=last&&isFinal(m)),...cl]){const pts=matchPoints(m)||{};
+      const inWeek=isUcl(m)?kick(m)>from:m.week===last;
+      for(const pid in pts){tot[pid]=(tot[pid]||0)+pts[pid].total;if(inWeek)wk[pid]=(wk[pid]||0)+pts[pid].total}}
+    const withCl=cl.some(m=>kick(m)>from);
+    L.push("",`🏁 *${last}. Hafta bitti*`,"Haftanın puanları"+(withCl?" (Şampiyonlar Ligi dahil)":"")+":",...table(wk),"",`📊 *Genel puan tablosu*`,...table(tot));
+  }
+  if(next!=null){
+    const list=ms.filter(m=>m.week===next&&m.state==="pre");
+    L.push("",`⏰ *${next}. Hafta* tahminleri *${fmtDate.format(new Date(lockAt(next)))}* itibarıyla kilitleniyor (haftanın ilk maçı).`,missingLine(list));
+  }
+  // Next Champions League matchday with Turkish teams, if it locks within 8 days.
+  const uw=weeksOf(S.ucl).find(w=>S.ucl.some(m=>m.week===w&&canPredict(m))&&!weekLocked(w,S.ucl));
+  if(uw!=null&&lockAt(uw,S.ucl)-now()<8*864e5){
+    const list=S.ucl.filter(m=>m.week===uw&&canPredict(m)&&m.state==="pre");
+    L.push("",`🏆 *Şampiyonlar Ligi ${uclTitle(uw)}* tahminleri *${fmtDate.format(new Date(lockAt(uw,S.ucl)))}* itibarıyla kilitleniyor.`,missingLine(list));
+  }
+  L.push("",`👉 ${location.origin}${location.pathname}`);
+  return L.join("\n")}
+function sharePanel(ms){
+  const text=shareText(ms);
+  return h("section",{class:"panel"},
+    h("h2",{},"Gruba gönder"),
+    h("p",{class:"small muted",style:"margin:0"},"Son biten haftanın puanlarını ve bir sonraki haftanın (yaklaşıyorsa Şampiyonlar Ligi maç gününün de) kilit saatini WhatsApp grubuna gönder."),
+    h("pre",{class:"sharetext",text}),
+    h("div",{class:"row"},
+      h("a",{class:"btn primary",href:"https://wa.me/?text="+encodeURIComponent(text),target:"_blank",rel:"noopener"},"WhatsApp'ta paylaş"),
+      h("button",{class:"btn",onclick:async()=>{try{await navigator.clipboard.writeText(text);toast("Mesaj kopyalandı.")}catch(e){toast("Kopyalanamadı.",true)}}},"Metni kopyala")))}
+
 function standingsView(ms){
-  const fin=ms.filter(isFinal);
+  // Süper Lig matches plus the Champions League matches players predict (Turkish teams).
+  const scoredMs=[...ms,...S.ucl.filter(canPredict)];
+  const fin=scoredMs.filter(isFinal);
   const rows=S.players.map(p=>{const r={p,pts:0,wk:0,n:0,c:{exact:0,winner:0,btts:0}};return r});
   const byId=Object.fromEntries(rows.map(r=>[r.p.id,r]));
-  for(const m of ms){const pts=matchPoints(m);if(!pts)continue;
+  for(const m of scoredMs){const pts=matchPoints(m);if(!pts)continue;
     for(const pid in pts){const r=byId[pid];if(!r)continue;
-      if(m.week===S.week)r.wk+=pts[pid].total;
+      if(!isUcl(m)&&m.week===S.week)r.wk+=pts[pid].total;
       if(!isFinal(m))continue;
       r.pts+=pts[pid].total;r.n++;POOLS.forEach(([k])=>{if(pts[pid].hit[k])r.c[k]++})}}
   rows.sort((a,b)=>b.pts-a.pts||b.c.exact-a.c.exact||a.p.name.localeCompare(b.p.name));
@@ -400,11 +475,69 @@ function standingsView(ms){
       h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),h("th",{class:"opt",title:"Tam skor isabeti"},"Tam skor"),h("th",{class:"opt",title:"Doğru kazanan veya beraberlik"},"Kazanan"),h("th",{class:"opt",title:"Karşılıklı gol doğru tahmini"},"KG"),h("th",{class:"opt"},"Oynanan"),h("th",{},S.week+". hf"),h("th",{},"Puan"))),
       h("tbody",{},rows.map(r=>h("tr",{class:(r.rank===1&&r.pts>0?"leader ":"")+(r.p.id===S.me?"isme":"")},
         h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),h("td",{class:"opt"},r.c.exact),h("td",{class:"opt"},r.c.winner),h("td",{class:"opt"},r.c.btts),h("td",{class:"opt"},r.n),h("td",{},fmtPts(r.wk)),h("td",{class:"total"},fmtPts(r.pts))))))),
+    sharePanel(ms),
     h("section",{class:"panel"},h("h2",{},"Puanlama"),
       h("p",{class:"small muted",style:"margin:0"},"Her maçta üç puan havuzu var. Her havuz, o kategoriyi doğru bilen oyuncular arasında eşit bölünür; doğru olup olmadığı tahmin ettiğin skordan hesaplanır. Kimse bilemezse o puanlar kimseye verilmez."),
       h("div",{class:"rules"},POOLS.map(([k,l,pool])=>h("div",{class:"rule"},h("b",{},String(pool)),h("span",{},l+{exact:" (iki takımın golü de doğru)",winner:" (ev sahibi, deplasman veya beraberlik)",btts:" (var ya da yok doğru)"}[k])))),
-      h("p",{class:"small muted",style:"margin:0"},`Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
+      h("p",{class:"small muted",style:"margin:0"},`Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Şampiyonlar Ligi'nde Türk takımlarının maçları da aynı puanlamayla bu tabloya eklenir (haftalık sütun yalnızca Süper Lig haftasını gösterir). Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
 }
+
+/* ---------- Champions League ----------
+   Turkish teams' matches are predicted like Süper Lig matches (same scoring, same Puan Tablosu);
+   each matchday locks at its first such kickoff. The table is ESPN's official league-phase table. */
+const UCL_STAGES={"league-phase":"Lig aşaması","knockout-round-playoffs":"Play-off","round-of-16":"Son 16","quarterfinals":"Çeyrek final","semifinals":"Yarı final","final":"Final"};
+function uclTitle(w){
+  const list=S.ucl.filter(m=>m.week===w),stage=(list[0]||{}).stage||"";
+  const same=weeksOf(S.ucl).filter(x=>(S.ucl.find(m=>m.week===x)||{}).stage===stage),n=same.indexOf(w)+1;
+  if(stage==="league-phase")return n+". Maç Günü";
+  const name=UCL_STAGES[stage]||stage.replace(/-/g," ");
+  return same.length>1?`${name} · ${n}. maç`:name}
+function compactRow(m){
+  const sc=scored(m)?m.hs+" – "+m.as:null;
+  return h("div",{class:"crow"},
+    h("span",{class:"h",text:m.home}),
+    h("span",{class:"s"+(isLive(m)?" live":"")},sc||h("small",{},m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):fmtDate.format(new Date(m.kickoff))),
+      sc?h("small",{},isLive(m)?(m.clock||"Canlı"):"MS"):null),
+    h("span",{class:"a",text:m.away}))}
+function picksStrip(m){
+  if(!locked(m)){
+    const who=S.players.filter(p=>(S.picks[p.id]||{})[m.id]||S.submitted.has(p.id+"|"+m.id)).map(p=>p.short);
+    return h("div",{class:"under"},who.length?"Tahmin girenler: "+who.join(", "):"Henüz kimse tahmin girmedi")}
+  const pts=matchPoints(m)||{};
+  return h("div",{class:"under"},S.players.map(p=>{const x=(S.picks[p.id]||{})[m.id],r=pts[p.id];
+    return h("span",{class:"pick"+(p.id===S.me?" mine":"")},h("b",{text:p.short}),x?` ${x.h}–${x.a}`:" –",
+      r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":"")},fmtPts(r.total)):null)}))}
+function uclView(){
+  const ms=S.ucl;
+  if(!ms.length)return h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Şampiyonlar Ligi verisi yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek."));
+  const wks=weeksOf(ms);if(!wks.includes(S.uclWeek))S.uclWeek=defaultWeek(ms);
+  const list=ms.filter(m=>m.week===S.uclWeek),pred=list.filter(canPredict),other=list.filter(m=>!canPredict(m));
+  const me=S.me,open=pred.filter(m=>!locked(m));
+  const dirty=Object.keys(S.drafts).some(id=>open.some(m=>m.id===id));
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    weekNav(wks,list,"uclWeek",uclTitle),
+    pred.length?h("h3",{class:"sub"},"Türk takımlarının maçları · tahmin"):h("p",{class:"small muted",style:"margin:0"},"Bu turda Türk takımı yok; tahmin edilecek maç bulunmuyor."),
+    pred.length?h("div",{class:"list"},pred.map(m=>h("div",{class:"matchwrap"},matchRow(m,me),picksStrip(m)))):null,
+    me&&open.length?h("div",{class:"savebar"},
+      h("span",{class:"small muted"},`Açık ${open.length} maçın ${open.filter(m=>(S.picks[me]||{})[m.id]).length} tanesi tahmin edildi · ilk Türk takımı maçıyla (${fmtDate.format(new Date(lockAt(S.uclWeek,ms)))}) kilitlenir`),
+      h("button",{id:"save",class:"btn primary",disabled:!dirty||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":"Tahminleri kaydet")):null,
+    other.length?h("h3",{class:"sub"},"Diğer maçlar"):null,
+    other.length?h("div",{class:"list"},other.map(compactRow)):null,
+    uclTableView())}
+function uclTableView(){
+  const t=S.uclTable;if(!t.length)return null;
+  const zone=r=>r.rank<=8?"z1":r.rank<=24?"z2":"z3";
+  const sgn=v=>v>0?"+"+v:String(v);
+  return h("div",{style:"display:flex;flex-direction:column;gap:8px"},
+    h("h3",{class:"sub"},"Lig aşaması puan durumu"),
+    h("div",{class:"tablewrap"},h("table",{class:"league ucltable"},
+      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Takım"),h("th",{title:"Oynanan"},"O"),h("th",{class:"opt",title:"Galibiyet"},"G"),h("th",{class:"opt",title:"Beraberlik"},"B"),h("th",{class:"opt",title:"Mağlubiyet"},"M"),
+        h("th",{class:"opt",title:"Atılan gol"},"A"),h("th",{class:"opt",title:"Yenilen gol"},"Y"),h("th",{title:"Averaj"},"AV"),h("th",{},"P"))),
+      h("tbody",{},t.map(r=>h("tr",{class:zone(r)+(r.tr?" tr":"")},
+        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.team}),h("td",{},r.o),
+        h("td",{class:"opt"},r.g),h("td",{class:"opt"},r.b),h("td",{class:"opt"},r.m),h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),
+        h("td",{},sgn(r.av)),h("td",{class:"total"},r.p)))))),
+    h("p",{class:"small muted",style:"margin:0"},h("span",{class:"key z1"},"1–8"),"son 16'ya doğrudan · ",h("span",{class:"key z2"},"9–24"),"play-off · ",h("span",{class:"key z3"},"25–36"),"elenir. Türk takımları vurgulanır. Sıralama UEFA'nın resmi tablosudur (ESPN)."))}
 
 /* ---------- Süper Lig table ----------
    Built from the finished matches already in the database: 3 points a win, 1 a draw.
@@ -462,14 +595,16 @@ async function refresh(){
     const st=await rpc("get_state");
     S.skew=Date.parse(st.now)-Date.now();
     S.players=st.players||[];
-    S.matches=(st.matches||[]).map(m=>({...m,hs:m.hs==null?null:Number(m.hs),as:m.as==null?null:Number(m.as)}));
+    const all=(st.matches||[]).map(m=>({...m,hs:m.hs==null?null:Number(m.hs),as:m.as==null?null:Number(m.as)}));
+    S.matches=all.filter(m=>!isUcl(m));S.ucl=all.filter(isUcl);
+    S.uclTable=Array.isArray(st.ucl_table)?st.ucl_table:[];
     const picks={};(st.picks||[]).forEach(x=>{(picks[x.p]=picks[x.p]||{})[x.m]={h:x.h,a:x.a}});S.picks=picks;mergeMine();
     S.submitted=new Set((st.submitted||[]).map(x=>x.p+"|"+x.m));
     S.syncedAt=st.synced_at;S.loaded=true;S.error=false;S.slow=false;
     if(S.me&&!playerById(S.me))signOut();
   }catch(e){S.error=true}
   inFlight=false;render();
-  pollTimer=setTimeout(refresh,S.matches.some(isLive)?30000:120000);
+  pollTimer=setTimeout(refresh,S.matches.some(isLive)||S.ucl.some(isLive)?30000:120000);
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
 
