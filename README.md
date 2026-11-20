@@ -10,8 +10,8 @@ A Süper Lig 2026–27 score-prediction league for four friends.
   It reads ESPN's public Süper Lig and Champions League scoreboards (plus the Champions League table)
   and upserts them into Supabase. It needs the repository secret `SUPABASE_SECRET_KEY`.
 - **Champions League:** the "Şampiyonlar Ligi" tab shows every match and the league-phase table.
-  Only matches involving a Süper Lig team are predicted; they score like Süper Lig matches and count
-  in the main Puan Tablosu. Each matchday locks at its first predicted kickoff.
+  Every match is predicted; they score like Süper Lig matches and count in the main Puan Tablosu.
+  Each day (Istanbul date) locks at that day's first kickoff. Turkish teams' matches are highlighted.
 
 ## Scoring
 

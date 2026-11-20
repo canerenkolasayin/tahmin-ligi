@@ -123,6 +123,24 @@ as $$
 $$;
 revoke all on function public._week_locked(text, int) from public, anon, authenticated;
 
+-- Is this match's lock group locked? Süper Lig: the whole week, from its first kickoff.
+-- Champions League: each day (Istanbul date) separately, from that day's first kickoff.
+create or replace function public._match_locked(p_comp text, p_week int, p_kickoff timestamptz)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select case when p_comp = 'ucl' then
+    exists (select 1 from matches
+             where comp = 'ucl' and predictable
+               and (kickoff at time zone 'Europe/Istanbul')::date = (p_kickoff at time zone 'Europe/Istanbul')::date
+               and (kickoff <= now() or state = 'in'))
+  else _week_locked(p_comp, p_week) end;
+$$;
+revoke all on function public._match_locked(text, int, timestamptz) from public, anon, authenticated;
+
 -- ---------- public functions ----------
 -- Everything the page shows. Other players' scores are only included once the week
 -- is locked; before that the page only learns that a prediction exists.
@@ -142,10 +160,10 @@ as $$
                   order by kickoff, id), '[]'::json) from matches),
     'picks',   (select coalesce(json_agg(json_build_object('p', p.player_id, 'm', p.match_id, 'h', p.h, 'a', p.a)), '[]'::json)
                   from picks p join matches m on m.id = p.match_id
-                 where _week_locked(m.comp, m.week)),
+                 where _match_locked(m.comp, m.week, m.kickoff)),
     'submitted', (select coalesce(json_agg(json_build_object('p', p.player_id, 'm', p.match_id)), '[]'::json)
                   from picks p join matches m on m.id = p.match_id
-                 where not _week_locked(m.comp, m.week)),
+                 where not _match_locked(m.comp, m.week, m.kickoff)),
     'ucl_table', (select value::json from meta where key = 'ucl_standings'),
     'synced_at', (select value from meta where key = 'synced_at'),
     'now', now()
@@ -197,7 +215,7 @@ begin
     select * into v_m from matches where id = r->>'m';
     if not found
        or not v_m.predictable
-       or v_m.kickoff <= now() or v_m.state <> 'pre' or _week_locked(v_m.comp, v_m.week)
+       or v_m.kickoff <= now() or v_m.state <> 'pre' or _match_locked(v_m.comp, v_m.week, v_m.kickoff)
        or coalesce(r->>'h', '') !~ '^[0-9]{1,2}$' or coalesce(r->>'a', '') !~ '^[0-9]{1,2}$'
        or (r->>'h')::int > 20 or (r->>'a')::int > 20 then
       v_skip := v_skip + 1;

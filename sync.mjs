@@ -102,8 +102,9 @@ try {
     .filter(m => !/qualif/i.test(m.stage));
   if (ucl.length < 100) throw new Error(`only ${ucl.length} matches returned; not writing`);
   const days = assignWeeks(ucl, 1);
+  // Every Champions League match is predicted (Turkish teams are only highlighted on the page).
   const predicted = ucl.filter(m => turkishIds.has(m.homeId) || turkishIds.has(m.awayId));
-  await upsert("matches", ucl.map(m => row(m, turkishIds.has(m.homeId) || turkishIds.has(m.awayId))));
+  await upsert("matches", ucl.map(m => row(m, true)));
 
   const st = await getJson(`${ESPN}/v2/sports/soccer/uefa.champions/standings`);
   const entries = ((st.children || [])[0] || {}).standings?.entries || [];
@@ -114,7 +115,7 @@ try {
     a: stat(e, "pointsFor"), y: stat(e, "pointsAgainst"), av: stat(e, "pointDifferential"), p: stat(e, "points"),
   })).sort((x, y) => x.rank - y.rank);
   if (table.length) await upsert("meta", [{ key: "ucl_standings", value: JSON.stringify(table) }]);
-  console.log(`Champions League: ${ucl.length} matches in ${days} matchdays, ${predicted.length} with Turkish teams; table ${table.length} teams.`);
+  console.log(`Champions League: ${ucl.length} matches in ${days} matchdays, ${predicted.length} with Turkish teams (all predicted); table ${table.length} teams.`);
 } catch (err) {
   console.warn(`Champions League sync skipped: ${err.message}`);
 }
