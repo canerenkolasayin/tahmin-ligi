@@ -9,6 +9,9 @@ A Süper Lig 2026–27 score-prediction league for four friends.
 - **Scores:** `.github/workflows/sync.yml` runs `sync.mjs` every 10 minutes (09:00–22:59 UTC).
   It reads ESPN's public Süper Lig and Champions League scoreboards (plus the Champions League table)
   and upserts them into Supabase. It needs the repository secret `SUPABASE_SECRET_KEY`.
+- **Live scores:** `live-sync.sql` sets up Supabase Cron to call ESPN every 30 seconds while a match
+  is on and update scores in the database. GitHub's schedule is too unreliable for live scores, so the
+  GitHub sync is only used for fixtures and week numbers.
 - **Champions League:** the "Şampiyonlar Ligi" tab shows every match and the league-phase table.
   Every match is predicted; they score like Süper Lig matches and count in the main Puan Tablosu.
   Each day (Istanbul date) locks at that day's first kickoff. Turkish teams' matches are highlighted.

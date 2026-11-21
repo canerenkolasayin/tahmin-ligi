@@ -679,7 +679,9 @@ async function refresh(){
     if(S.me&&!playerById(S.me))signOut();
   }catch(e){S.error=true}
   inFlight=false;render();
-  pollTimer=setTimeout(refresh,S.matches.some(isLive)||S.ucl.some(isLive)?30000:120000);
+  // Poll every 30 s while any match is on (or should be: kickoff passed, not finished yet).
+  const on=m=>isLive(m)||(!m.done&&m.state!=="post"&&now()>=kick(m)-5*60e3&&now()<kick(m)+4*3600e3);
+  pollTimer=setTimeout(refresh,S.matches.some(on)||S.ucl.some(on)?30000:120000);
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
 /* Warn before leaving with unsaved predictions. */
