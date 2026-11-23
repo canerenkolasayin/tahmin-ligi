@@ -237,7 +237,8 @@ const SUPABASE_KEY="sb_publishable_ekb2O_nM_HgDmiOUxEeYBA_srQh1TF8";
    both-teams-to-score drops to 100 and over/under 2.5 goals (150) is added. Weeks 1-12 keep the old pools. */
 const NEW_RULES_WEEK=13;
 const POOLS_OLD=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",150]];
-const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",100],["ou","Üst/Alt 2,5",150]];
+// Highest pool first; this order is used for columns, tags and the rules panel.
+const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["ou","Üst/Alt 2,5",150],["btts","Karşılıklı gol",100]];
 const SHORT={exact:"TS",winner:"K",btts:"KG",ou:"Ü/A"};
 const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"],["ucl","Şampiyonlar Ligi"],["uclres","ŞL Sonuçlar"]];
 
@@ -564,11 +565,11 @@ function standingsView(ms){
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     h("div",{class:"tablewrap"},h("table",{class:"standings"},
       h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),
-        h("th",{class:"opt",title:"Tam skor isabeti"},"TS"),h("th",{class:"opt",title:"Doğru kazanan veya beraberlik"},"K"),h("th",{class:"opt",title:"Karşılıklı gol doğru tahmini"},"KG"),h("th",{class:"opt",title:"Üst/Alt 2,5 doğru tahmini (13. haftadan itibaren)"},"Ü/A"),h("th",{class:"opt",title:"Puanlanan maç"},"Maç"),
+        POOLS.map(([k,l])=>h("th",{class:"opt",title:l+" isabeti"},SHORT[k])),h("th",{class:"opt",title:"Puanlanan maç"},"Maç"),
         h("th",{title:S.week+". hafta (Şampiyonlar Ligi dahil)"},S.week+". hf"),h("th",{class:"per",title:"İki haftalık dönem (Şampiyonlar Ligi dahil)"},periodLabel(pr)),h("th",{},"Puan"))),
       h("tbody",{},rows.map(r=>h("tr",{class:(r.rank===1&&r.pts>0?"leader ":"")+(r.p.id===S.me?"isme":"")},
         h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),
-        h("td",{class:"opt"},r.c.exact),h("td",{class:"opt"},r.c.winner),h("td",{class:"opt"},r.c.btts),h("td",{class:"opt"},r.c.ou),h("td",{class:"opt"},r.n),
+        POOLS.map(([k])=>h("td",{class:"opt"},r.c[k])),h("td",{class:"opt"},r.n),
         h("td",{},fmtPts(r.wk)),h("td",{class:"per"},fmtPts(r.per)),h("td",{class:"total"},fmtPts(r.pts))))))),
     h("p",{class:"small muted",style:"margin:0"},"Hafta ve dönem sütunları Şampiyonlar Ligi maçlarını da içerir: hafta içi oynanan bir Şampiyonlar Ligi maçı, ardından gelen Süper Lig haftasına sayılır. Hafta seçimi Tahmin sekmesindeki haftayı izler."),
     periodsView(B),
