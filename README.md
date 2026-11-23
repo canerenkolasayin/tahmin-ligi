@@ -21,7 +21,8 @@ A Süper Lig 2026–27 score-prediction league for four friends.
 Each match has pools split equally between the players who got that category right
 (judged from the predicted score). From Süper Lig week 13 (and Champions League matches played
 after week 12): exact score 250, winner (home/away/draw) 200, both teams to score (yes or no) 100,
-over/under 2.5 goals 150. Weeks 1–12 used exact 250, winner 200, both teams to score 150.
+over/under 2.5 goals 100. Weeks 1–12 used exact 250, winner 200, both teams to score 150.
 
-Puan Tablosu shows the season total, the selected week and its two-week period (12–13, 14–15, …),
-plus a table of all periods. Champions League matches count in the Süper Lig week that follows them.
+Puan Tablosu shows the two weeks of the selected week's two-week period (12–13, 14–15, …), ranked by
+their sum, plus a table of every period's totals. Champions League matches count in the Süper Lig week
+that follows them.
