@@ -40,7 +40,7 @@ button{cursor:pointer}
 .link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .banner{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--muted)}
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);overflow-x:auto}
-.tab{background:none;border:0;padding:8px 14px 6px;font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-radius:6px 6px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab{background:none;border:0;padding:8px 11px 6px;font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-radius:6px 6px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block}
 @media (prefers-reduced-motion:no-preference){.dot{animation:pulse 1.4s ease-in-out infinite}}
@@ -158,6 +158,30 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .qfoot{padding:8px 12px;border-top:1px solid var(--line)}
 .savebar.sticky{position:sticky;bottom:0;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 16px rgba(0,0,0,.18)}
 .lt tr.trrow td.fx{box-shadow:inset 3px 0 0 var(--accent)}
+/* ŞL Sonuçlar cards */
+.rcards{display:flex;flex-direction:column;gap:10px}
+.rcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;border-left:3px solid var(--line)}
+.rcard.tr{border-left-color:var(--accent)}
+.rc-head{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center}
+.rc-h,.rc-a{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.1;overflow-wrap:break-word}
+.rc-h{text-align:right}
+.rc-sc{font-family:var(--display);font-weight:700;font-size:24px;background:var(--board);color:var(--board-ink);border-radius:6px;padding:2px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rc-sc.live{background:var(--live);color:var(--accent-ink)}
+.rc-status{text-align:center;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rc-status.live{color:var(--live)}
+.rc-rows{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.rc-row{display:grid;grid-template-columns:72px 40px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 2px;border-top:1px solid var(--line);font-size:14px}
+.rc-row:first-child{border-top:0}
+.rc-row.mine{background:color-mix(in srgb,var(--chip) 70%,transparent);border-radius:6px}
+.rc-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-pick{font-family:var(--display);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.rc-tags{display:flex;gap:3px;flex-wrap:wrap}
+.rc-tags .tag{padding:1px 5px}
+.pts.top{box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 40%,transparent)}
+.mdtotal{display:flex;flex-direction:column;gap:6px}
+.periods td.best{font-weight:700;color:var(--good)}
+.periods th.mine,.periods td.mine{background:color-mix(in srgb,var(--chip) 70%,transparent)}
+th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
 .empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:22px;text-transform:uppercase;margin-bottom:4px}
 .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -182,10 +206,18 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
   td.name{white-space:normal}
   .league td,.league th{padding:8px 5px}
   .league td.name{font-size:14px}
+  .standings th,.standings td{padding:9px 5px;font-size:13px}
+  .standings th{font-size:10px;letter-spacing:.04em;white-space:normal;line-height:1.2}
+  .standings td.rank{font-size:18px;width:22px}
+  .standings td.name{font-size:14px;line-height:1.2}
+  .standings td.total{font-size:19px}
+  .periods th,.periods td{padding:8px 5px;font-size:13px}
+  .periods th{font-size:10px;letter-spacing:.04em}
+  .periods td.l{white-space:nowrap}
 }
 @media (max-width:480px){
-  .tabs{gap:2px}
-  .tab{flex:1 1 0;justify-content:center;text-align:center;white-space:normal;line-height:1.1;font-size:14px;padding:7px 4px 5px;letter-spacing:.02em}
+  .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-bottom:0}
+  .tab{justify-content:center;text-align:center;white-space:normal;line-height:1.1;font-size:14px;padding:8px 4px;letter-spacing:.02em;border-radius:6px;background:var(--chip);min-height:40px}
   .team{font-size:17px}
   .digit{width:38px;height:42px;font-size:24px}
   .brand h1{font-size:32px}
@@ -201,10 +233,15 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
    three functions in supabase/schema.sql (get_state, login, save_picks). */
 const SUPABASE_URL="https://phmvejwbjqhbqzuaomgp.supabase.co";
 const SUPABASE_KEY="sb_publishable_ekb2O_nM_HgDmiOUxEeYBA_srQh1TF8";
-const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",150]];
-const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"],["ucl","Şampiyonlar Ligi"]];
+/* Scoring pools. From Süper Lig week 13 on (Champions League matches by date, see weekBucket):
+   both-teams-to-score drops to 100 and over/under 2.5 goals (150) is added. Weeks 1-12 keep the old pools. */
+const NEW_RULES_WEEK=13;
+const POOLS_OLD=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",150]];
+const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Karşılıklı gol",100],["ou","Üst/Alt 2,5",150]];
+const SHORT={exact:"TS",winner:"K",btts:"KG",ou:"Ü/A"};
+const TABS=[["predict","Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"],["ucl","Şampiyonlar Ligi"],["uclres","ŞL Sonuçlar"]];
 
-const S={matches:[],ucl:[],uclTable:[],uclWeek:null,trTeams:new Set(),players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
+const S={matches:[],ucl:[],uclTable:[],uclWeek:null,trTeams:new Set(),weekEnds:[],players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
   me:null,pin:null,tab:"predict",week:null,drafts:{},saving:false,loginFor:null,pinErr:"",busy:false,toast:"",toastErr:false};
 
 async function rpc(fn,args){
@@ -250,14 +287,24 @@ const isFinal=m=>m.state==="post"&&m.done&&Number.isFinite(m.hs);
 const scored=m=>(isLive(m)||isFinal(m))&&Number.isFinite(m.hs)&&Number.isFinite(m.as);
 const sign=(a,b)=>Math.sign(a-b);
 function hits(p,hs,as){return{exact:p.h===hs&&p.a===as,winner:sign(p.h,p.a)===sign(hs,as),
-  btts:(p.h>0&&p.a>0)===(hs>0&&as>0)}}
+  btts:(p.h>0&&p.a>0)===(hs>0&&as>0),ou:(p.h+p.a>2.5)===(hs+as>2.5)}}
+/* Which Süper Lig week a match counts in: its own week, or for a Champions League match the
+   first Süper Lig week ending on or after its kickoff (a midweek round counts in the coming week). */
+function weekBucket(m){
+  if(!isUcl(m))return m.week;
+  const t=kick(m),e=S.weekEnds.find(x=>x.end>=t);
+  return e?e.w:(S.weekEnds.length?S.weekEnds[S.weekEnds.length-1].w:0)}
+const poolsFor=m=>weekBucket(m)>=NEW_RULES_WEEK?POOLS:POOLS_OLD;
+/* Two-week periods: 12–13, 14–15, 16–17, ... */
+const periodOf=w=>w-(w%2);
+const periodLabel=p=>`${p}–${p+1}. hf`;
 /* Each pool is shared equally between the players who got that category right. */
 function matchPoints(m){
   if(!scored(m))return null;
   const out={};
   const entrants=S.players.filter(p=>(S.picks[p.id]||{})[m.id]);
   for(const p of entrants)out[p.id]={total:0,hit:hits(S.picks[p.id][m.id],m.hs,m.as),cats:{}};
-  for(const [k,,pool] of POOLS){
+  for(const [k,,pool] of poolsFor(m)){
     const winners=entrants.filter(p=>out[p.id].hit[k]);
     for(const p of winners){const share=pool/winners.length;out[p.id].cats[k]=share;out[p.id].total+=share}
   }
@@ -288,10 +335,10 @@ function render(){
     S.error?h("div",{class:"banner"},S.loaded?"Sunucuya ulaşılamıyor. Gösterilen skorlar güncel olmayabilir; tekrar deneniyor.":"Veriler yüklenemedi. Tekrar deneniyor."):null,
     !S.me&&loadedAll()&&(S.tab==="predict"||S.tab==="ucl")?loginPanel():null,
     h("div",{class:"tabs",role:"tablist"},TABS.map(([k,l])=>
-      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},(k==="live"&&anyLive)||(k==="ucl"&&uclLive)?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
+      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},(k==="live"&&anyLive)||((k==="ucl"||k==="uclres")&&uclLive)?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
     !loadedAll()?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Yükleniyor"),"Fikstür ve tahminler getiriliyor.")):
     !ms.length?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Henüz fikstür yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek.")):
-    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):S.tab==="ucl"?uclView():predictView(ms,wks),
+    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):S.tab==="ucl"?uclView():S.tab==="uclres"?uclResultsView():predictView(ms,wks),
     h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
 }
@@ -386,7 +433,7 @@ function matchRow(m,me){
   if(me&&scored(m)){
     const pts=(matchPoints(m)||{})[me];
     if(mine){under.push("Tahminin "+mine.h+"–"+mine.a);
-      POOLS.forEach(([k,label])=>under.push(h("span",{class:"tag"+(pts&&pts.hit[k]?" hit":"")},label)));
+      poolsFor(m).forEach(([k,label])=>under.push(h("span",{class:"tag"+(pts&&pts.hit[k]?" hit":"")},label)));
       under.push(h("span",{class:"pts"+(isLive(m)?" prov":"")+(pts&&pts.total===0?" zero":"")},"+"+fmtPts(pts?pts.total:0)))}
     else under.push("Bu maç için tahmin yapmadın")}
   else if(me&&st)under.push(mine?"Tahminin kilitlendi":"Tahmin yapılmadı");
@@ -438,7 +485,7 @@ function pickTable(list,footLabel){
           return h("td",{class:cls,title:inn?"Tahmin yapıldı, haftanın ilk maçı başlayınca görünecek":"Henüz tahmin yok"},h("span",{class:"small muted"},inn?"✓":"–"))}
         if(!x)return h("td",{class:cls,title:"Tahmin yok"},h("span",{class:"small muted"},"–"));
         const r=pts[p.id];
-        return h("td",{class:cls},x.h+"–"+x.a,r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":""),title:POOLS.filter(([k])=>r.hit[k]).map(([,l])=>l).join(", ")||"İsabet yok"},fmtPts(r.total)):null)}))});
+        return h("td",{class:cls},x.h+"–"+x.a,r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":""),title:poolsFor(m).filter(([k])=>r.hit[k]).map(([,l])=>l).join(", ")||"İsabet yok"},fmtPts(r.total)):null)}))});
   const anyProv=Object.values(totals).some(t=>t.prov>0);
   return {anyProv,el:h("div",{class:"tablewrap"},h("table",{class:"lt"},
       h("thead",{},h("tr",{},h("th",{class:"l"},"Maç"),h("th",{class:"c"},"Skor"),ps.map(p=>h("th",{class:"c"+(p.id===S.me?" mine":""),text:p.short})))),
@@ -457,19 +504,19 @@ function shareText(ms){
   const L=["*Tahmin Ligi* ⚽"];
   const table=(score)=>{const rows=S.players.map(p=>({p,v:score[p.id]||0})).sort((a,b)=>b.v-a.v||a.p.name.localeCompare(b.p.name,"tr"));
     let rank=0,prev=null;return rows.map((r,i)=>{if(r.v!==prev){rank=i+1;prev=r.v}return `${rank}. ${r.p.short} — ${fmtPts(r.v)}`})};
-  const endOf=w=>Math.max(...ms.filter(m=>m.week===w).map(kick));
   const missingLine=list=>{const missing=S.players.map(p=>({p,n:list.filter(m=>(S.picks[p.id]||{})[m.id]||S.submitted.has(p.id+"|"+m.id)).length})).filter(x=>x.n<list.length);
     return missing.length?"Eksik tahmini olanlar: "+missing.map(x=>`${x.p.short} (${x.n}/${list.length})`).join(", "):"Herkes tahminlerini girdi 👏"};
   if(last!=null){
-    // The week's points include Champions League matches played since the previous week ended.
-    const from=wks.indexOf(last)>0?endOf(wks[wks.indexOf(last)-1]):-Infinity,to=endOf(last);
-    const cl=S.ucl.filter(m=>canPredict(m)&&isFinal(m)&&kick(m)<=to);
-    const wk={},tot={};
-    for(const m of [...ms.filter(m=>m.week<=last&&isFinal(m)),...cl]){const pts=matchPoints(m)||{};
-      const inWeek=isUcl(m)?kick(m)>from:m.week===last;
-      for(const pid in pts){tot[pid]=(tot[pid]||0)+pts[pid].total;if(inWeek)wk[pid]=(wk[pid]||0)+pts[pid].total}}
-    const withCl=cl.some(m=>kick(m)>from);
-    L.push("",`🏁 *${last}. Hafta bitti*`,"Haftanın puanları"+(withCl?" (Şampiyonlar Ligi dahil)":"")+":",...table(wk),"",`📊 *Genel puan tablosu*`,...table(tot));
+    // Week, two-week period and overall totals up to the end of that week (Champions League included).
+    const wk={},per={},tot={},pr=periodOf(last);
+    for(const m of [...ms,...S.ucl.filter(canPredict)]){if(!isFinal(m))continue;const w=weekBucket(m);if(w>last)continue;
+      const pts=matchPoints(m)||{};
+      for(const pid in pts){const v=pts[pid].total;tot[pid]=(tot[pid]||0)+v;
+        if(w===last)wk[pid]=(wk[pid]||0)+v;if(periodOf(w)===pr)per[pid]=(per[pid]||0)+v}}
+    const withCl=S.ucl.some(m=>isFinal(m)&&weekBucket(m)===last);
+    L.push("",`🏁 *${last}. Hafta bitti*`,"Haftanın puanları"+(withCl?" (Şampiyonlar Ligi dahil)":"")+":",...table(wk),
+      "",`📅 *${periodLabel(pr)} dönemi* `+(last===pr+1?"bitti 🏆":"(devam ediyor)"),...table(per),
+      "",`📊 *Genel puan tablosu*`,...table(tot));
   }
   if(next!=null){
     const list=ms.filter(m=>m.week===next&&m.state==="pre");
@@ -494,30 +541,56 @@ function sharePanel(ms){
       h("a",{class:"btn primary",href:"https://wa.me/?text="+encodeURIComponent(text),target:"_blank",rel:"noopener"},"WhatsApp'ta paylaş"),
       h("button",{class:"btn",onclick:async()=>{try{await navigator.clipboard.writeText(text);toast("Mesaj kopyalandı.")}catch(e){toast("Kopyalanamadı.",true)}}},"Metni kopyala")))}
 
-function standingsView(ms){
-  // Süper Lig matches plus the Champions League matches players predict (Turkish teams).
-  const scoredMs=[...ms,...S.ucl.filter(canPredict)];
-  const fin=scoredMs.filter(isFinal);
-  const rows=S.players.map(p=>{const r={p,pts:0,wk:0,n:0,c:{exact:0,winner:0,btts:0}};return r});
-  const byId=Object.fromEntries(rows.map(r=>[r.p.id,r]));
-  for(const m of scoredMs){const pts=matchPoints(m);if(!pts)continue;
-    for(const pid in pts){const r=byId[pid];if(!r)continue;
-      if(!isUcl(m)&&m.week===S.week)r.wk+=pts[pid].total;
+/* Points per player, split by week and two-week period. Süper Lig and Champions League both count;
+   a Champions League match counts in weekBucket(m). Final results only, plus live (provisional)
+   points in the week/period columns. */
+function pointsBook(){
+  const book={tot:{},wk:{},per:{},n:{},c:{}};
+  S.players.forEach(p=>{book.tot[p.id]=0;book.n[p.id]=0;book.c[p.id]={exact:0,winner:0,btts:0,ou:0}});
+  for(const m of [...S.matches,...S.ucl.filter(canPredict)]){const pts=matchPoints(m);if(!pts)continue;
+    const w=weekBucket(m),pr=periodOf(w);
+    for(const pid in pts){if(!(pid in book.tot))continue;const v=pts[pid].total;
+      (book.wk[w]=book.wk[w]||{})[pid]=(book.wk[w][pid]||0)+v;
+      (book.per[pr]=book.per[pr]||{})[pid]=(book.per[pr][pid]||0)+v;
       if(!isFinal(m))continue;
-      r.pts+=pts[pid].total;r.n++;POOLS.forEach(([k])=>{if(pts[pid].hit[k])r.c[k]++})}}
+      book.tot[pid]+=v;book.n[pid]++;poolsFor(m).forEach(([k])=>{if(pts[pid].hit[k])book.c[pid][k]++})}}
+  return book}
+function standingsView(ms){
+  const fin=[...ms,...S.ucl].filter(isFinal);
+  const B=pointsBook(),wk=B.wk[S.week]||{},pr=periodOf(S.week),per=B.per[pr]||{};
+  const rows=S.players.map(p=>({p,pts:B.tot[p.id],wk:wk[p.id]||0,per:per[p.id]||0,n:B.n[p.id],c:B.c[p.id]}));
   rows.sort((a,b)=>b.pts-a.pts||b.c.exact-a.c.exact||a.p.name.localeCompare(b.p.name));
   let rank=0,prev=null;rows.forEach((r,i)=>{const key=fmtPts(r.pts)+"/"+r.c.exact;if(key!==prev){rank=i+1;prev=key}r.rank=rank});
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
-    h("div",{class:"tablewrap"},h("table",{},
-      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),h("th",{class:"opt",title:"Tam skor isabeti"},"Tam skor"),h("th",{class:"opt",title:"Doğru kazanan veya beraberlik"},"Kazanan"),h("th",{class:"opt",title:"Karşılıklı gol doğru tahmini"},"KG"),h("th",{class:"opt"},"Oynanan"),h("th",{},S.week+". hf"),h("th",{},"Puan"))),
+    h("div",{class:"tablewrap"},h("table",{class:"standings"},
+      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),
+        h("th",{class:"opt",title:"Tam skor isabeti"},"TS"),h("th",{class:"opt",title:"Doğru kazanan veya beraberlik"},"K"),h("th",{class:"opt",title:"Karşılıklı gol doğru tahmini"},"KG"),h("th",{class:"opt",title:"Üst/Alt 2,5 doğru tahmini (13. haftadan itibaren)"},"Ü/A"),h("th",{class:"opt",title:"Puanlanan maç"},"Maç"),
+        h("th",{title:S.week+". hafta (Şampiyonlar Ligi dahil)"},S.week+". hf"),h("th",{class:"per",title:"İki haftalık dönem (Şampiyonlar Ligi dahil)"},periodLabel(pr)),h("th",{},"Puan"))),
       h("tbody",{},rows.map(r=>h("tr",{class:(r.rank===1&&r.pts>0?"leader ":"")+(r.p.id===S.me?"isme":"")},
-        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),h("td",{class:"opt"},r.c.exact),h("td",{class:"opt"},r.c.winner),h("td",{class:"opt"},r.c.btts),h("td",{class:"opt"},r.n),h("td",{},fmtPts(r.wk)),h("td",{class:"total"},fmtPts(r.pts))))))),
+        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),
+        h("td",{class:"opt"},r.c.exact),h("td",{class:"opt"},r.c.winner),h("td",{class:"opt"},r.c.btts),h("td",{class:"opt"},r.c.ou),h("td",{class:"opt"},r.n),
+        h("td",{},fmtPts(r.wk)),h("td",{class:"per"},fmtPts(r.per)),h("td",{class:"total"},fmtPts(r.pts))))))),
+    h("p",{class:"small muted",style:"margin:0"},"Hafta ve dönem sütunları Şampiyonlar Ligi maçlarını da içerir: hafta içi oynanan bir Şampiyonlar Ligi maçı, ardından gelen Süper Lig haftasına sayılır. Hafta seçimi Tahmin sekmesindeki haftayı izler."),
+    periodsView(B),
     sharePanel(ms),
     h("section",{class:"panel"},h("h2",{},"Puanlama"),
-      h("p",{class:"small muted",style:"margin:0"},"Her maçta üç puan havuzu var. Her havuz, o kategoriyi doğru bilen oyuncular arasında eşit bölünür; doğru olup olmadığı tahmin ettiğin skordan hesaplanır. Kimse bilemezse o puanlar kimseye verilmez."),
-      h("div",{class:"rules"},POOLS.map(([k,l,pool])=>h("div",{class:"rule"},h("b",{},String(pool)),h("span",{},l+{exact:" (iki takımın golü de doğru)",winner:" (ev sahibi, deplasman veya beraberlik)",btts:" (var ya da yok doğru)"}[k])))),
-      h("p",{class:"small muted",style:"margin:0"},`Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Şampiyonlar Ligi maçları da aynı puanlamayla bu tabloya eklenir (haftalık sütun yalnızca Süper Lig haftasını gösterir). Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
+      h("p",{class:"small muted",style:"margin:0"},"Her maçta puan havuzları var. Her havuz, o kategoriyi doğru bilen oyuncular arasında eşit bölünür; doğru olup olmadığı tahmin ettiğin skordan hesaplanır. Kimse bilemezse o puanlar kimseye verilmez."),
+      h("div",{class:"rules"},POOLS.map(([k,l,pool])=>h("div",{class:"rule"},h("b",{},String(pool)),h("span",{},l+{exact:" (iki takımın golü de doğru)",winner:" (ev sahibi, deplasman veya beraberlik)",btts:" (var ya da yok doğru)",ou:" (toplam gol 3+ ya da 0–2 doğru)"}[k])))),
+      h("p",{class:"small muted",style:"margin:0"},`Bu puanlama ${NEW_RULES_WEEK}. haftadan itibaren geçerli (Şampiyonlar Ligi'nde 12. hafta bittikten sonraki maçlar). 1–12. haftalarda Karşılıklı gol 150 puandı ve Üst/Alt yoktu. Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
 }
+/* Every two-week period from week 12 to the current one, with the period winner marked. */
+function periodsView(B){
+  const lastW=Math.max(S.week||0,...Object.keys(B.wk).map(Number));
+  const periods=[];for(let p=periodOf(12);p<=periodOf(lastW);p+=2)periods.push(p);
+  if(!periods.length)return null;
+  return h("section",{class:"panel"},h("h2",{},"İki haftalık dönemler"),
+    h("div",{class:"tablewrap"},h("table",{class:"periods"},
+      h("thead",{},h("tr",{},h("th",{class:"l"},"Hafta"),S.players.map(p=>h("th",{class:p.id===S.me?"mine":null,text:p.short})))),
+      h("tbody",{},periods.slice().reverse().map(pr=>{const v=B.per[pr]||{},best=Math.max(0,...S.players.map(p=>v[p.id]||0));
+        const live=[...S.matches,...S.ucl].some(m=>periodOf(weekBucket(m))===pr&&!isFinal(m)&&m.state!=="post");
+        return h("tr",{},h("td",{class:"l"},`${pr}–${pr+1}`,live?h("small",{class:"muted"}," · Devam Ediyor"):null),
+          S.players.map(p=>{const x=v[p.id]||0;return h("td",{class:(x===best&&best>0?"best ":"")+(p.id===S.me?"mine":"")},fmtPts(x))}))})))),
+    h("p",{class:"small muted",style:"margin:0"},"Kalın rakam o dönemin birincisi. Devam eden dönemlerde canlı maçların puanları da gösterilir."))}
 
 /* ---------- Champions League ----------
    Turkish teams' matches are predicted like Süper Lig matches (same scoring, same Puan Tablosu);
@@ -598,6 +671,44 @@ function uclView(){
       h("span",{id:"dirtyn",class:"small"},n?`${n} maçta kaydedilmemiş değişiklik var`:"Tüm tahminlerin kayıtlı"),
       h("button",{id:"save",class:"btn primary",disabled:!n||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":n?`Kaydet (${n})`:"Kaydedildi ✓")):null,
     uclTableView())}
+/* ŞL Sonuçlar: each locked match with the result and every player's pick, hits and points. */
+function resultCard(m){
+  const pts=matchPoints(m)||{},pools=poolsFor(m),sc=scored(m);
+  const status=isLive(m)?"Canlı · "+(m.clock||""):isFinal(m)?"Maç sonu":m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):started(m)?"Başladı":fmtTime.format(new Date(m.kickoff));
+  const best=Math.max(0,...S.players.map(p=>(pts[p.id]||{}).total||0));
+  return h("div",{class:"rcard"+(hasTR(m)?" tr":"")},
+    h("div",{class:"rc-head"},h("span",{class:"rc-h",text:m.home}),
+      h("span",{class:"rc-sc"+(isLive(m)?" live":"")},sc?m.hs+" – "+m.as:"– : –"),
+      h("span",{class:"rc-a",text:m.away})),
+    h("div",{class:"rc-status"+(isLive(m)?" live":"")},status),
+    h("div",{class:"rc-rows"},S.players.map(p=>{const x=(S.picks[p.id]||{})[m.id],r=pts[p.id];
+      return h("div",{class:"rc-row"+(p.id===S.me?" mine":"")},
+        h("b",{text:p.short}),
+        h("span",{class:"rc-pick"},x?`${x.h}–${x.a}`:"–"),
+        h("span",{class:"rc-tags"},sc&&x?pools.map(([k,l])=>h("span",{class:"tag"+(r&&r.hit[k]?" hit":""),title:l},SHORT[k])):!x?h("span",{class:"small muted"},"tahmin yok"):null),
+        r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":"")+(r.total===best&&best>0?" top":"")},"+"+fmtPts(r.total)):h("span",{}))})))}
+function uclResultsView(){
+  const ms=S.ucl;
+  if(!ms.length)return h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Şampiyonlar Ligi verisi yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek."));
+  const wks=weeksOf(ms);if(!wks.includes(S.uclWeek))S.uclWeek=defaultWeek(ms);
+  const list=ms.filter(m=>m.week===S.uclWeek);
+  const days=[...new Set(list.map(dayOf))].map(d=>list.filter(m=>dayOf(m)===d));
+  const tot={};S.players.forEach(p=>tot[p.id]=0);
+  list.forEach(m=>{const pts=matchPoints(m)||{};for(const pid in pts)if(pid in tot)tot[pid]+=pts[pid].total});
+  const ranked=S.players.map(p=>({p,v:tot[p.id]})).sort((a,b)=>b.v-a.v);
+  const anyScored=list.some(scored);
+  return h("div",{style:"display:flex;flex-direction:column;gap:14px"},
+    weekNav(wks,list,"uclWeek",uclTitle),
+    anyScored?h("div",{class:"mdtotal"},h("span",{class:"small muted"},"Maç günü puanı"),
+      h("div",{class:"row"},ranked.map((r,i)=>h("span",{class:"pick"+(r.p.id===S.me?" mine":"")},h("b",{},`${i+1}. ${r.p.short}`),h("span",{class:"pts"+(r.v===0?" zero":"")},fmtPts(r.v)))))):null,
+    h("p",{class:"small muted",style:"margin:0"},POOLS.map(([k,l])=>SHORT[k]+" = "+l).join(" · ")+". Yeşil etiket: o kategoriyi bildi."),
+    days.map(dl=>{const lockT=Math.min(...dl.map(kick)),open=!groupLocked(dl[0]);
+      return h("section",{class:"day"},
+        h("div",{class:"dayhead"},h("b",{text:fmtDay.format(new Date(dl[0].kickoff))}),
+          open?h("span",{class:"state open"},"Tahminler "+fmtTime.format(new Date(lockT))+"'de açıklanır"):dl.some(isLive)?h("span",{class:"state live"},"Canlı"):dl.every(m=>m.state==="post")?h("span",{class:"state ft"},"Bitti"):h("span",{class:"state lock"},"Kilitli")),
+        open?h("div",{class:"list"},h("div",{class:"qfoot small muted",style:"border-top:0"},
+            `${dl.length} maç. Tahmin girenler: ${S.players.filter(p=>dl.some(m=>S.submitted.has(p.id+"|"+m.id)||(p.id===S.me&&myPick(m)))).map(p=>p.short).join(", ")||"henüz kimse"}. Herkesin tahmini günün ilk maçı başlayınca burada görünür.`)):
+          h("div",{class:"rcards"},dl.map(resultCard)))}))}
 function uclTableView(){
   const t=S.uclTable;if(!t.length)return null;
   const zone=r=>r.rank<=8?"z1":r.rank<=24?"z2":"z3";
@@ -672,6 +783,7 @@ async function refresh(){
     const all=(st.matches||[]).map(m=>({...m,hs:m.hs==null?null:Number(m.hs),as:m.as==null?null:Number(m.as)}));
     S.matches=all.filter(m=>!isUcl(m));S.ucl=all.filter(isUcl);
     S.trTeams=new Set(S.matches.flatMap(m=>[m.home,m.away]));
+    S.weekEnds=weeksOf(S.matches).map(w=>({w,end:Math.max(...S.matches.filter(m=>m.week===w).map(kick))}));
     S.uclTable=Array.isArray(st.ucl_table)?st.ucl_table:[];
     const picks={};(st.picks||[]).forEach(x=>{(picks[x.p]=picks[x.p]||{})[x.m]={h:x.h,a:x.a}});S.picks=picks;mergeMine();
     S.submitted=new Set((st.submitted||[]).map(x=>x.p+"|"+x.m));
