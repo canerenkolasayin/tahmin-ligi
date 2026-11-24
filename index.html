@@ -5,33 +5,39 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tahmin Ligi</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#f1f3f8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000040" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#000040">
+<!-- Home-screen app (iPhone: Safari > Share > Add to Home Screen) -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tahmin Ligi">
+<!-- The app is always navy, so the iPhone status bar shows white text over the page itself. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one narrow column like a matchday programme; scoreboard digit boxes are the signature element */
-/* Colours: Champions League palette (deep navy, electric blue, cyan, gold).
-   Light mode: pale blue-grey page, navy ink, electric-blue accent. Dark mode: navy page, cyan accent. */
+/* Colours: Champions League night palette (deep navy, electric blue, cyan, gold).
+   One look for everyone: the same navy/cyan colours whether the phone is in light or dark mode. */
 :root{
-  --bg:#f1f3f8; --surface:#ffffff; --ink:#000040; --muted:#55707d; --line:#dbdde9; --chip:#e8ebf5;
-  --accent:#0232ff; --accent-ink:#ffffff; --board:#000040; --board-ink:#ffffff;
-  --good:#1e4fd0; --live:#e21219; --miss:#8f9ab0; --gold:#9a6c00; --glow:#d9e0ff;
-  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
-  color-scheme:light;
+  --bg:#000040; --surface:#0a0a55; --ink:#ffffff; --muted:#a9b0d6; --line:#22227a; --chip:#15156b;
+  --accent:#00eeff; --accent-ink:#000040; --board:#ffffff; --board-ink:#000040;
+  --good:#00d9f7; --live:#ff4b55; --miss:#5c6396; --gold:#ffcd44; --glow:#0232ff;
+  /* Saira Condensed for everything (Google Fonts, has all Turkish letters). */
+  --display:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Saira Condensed","Arial Narrow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#000040; --surface:#0a0a55; --ink:#ffffff; --muted:#a9b0d6; --line:#22227a; --chip:#15156b;
-  --accent:#00eeff; --accent-ink:#000040; --board:#ffffff; --board-ink:#000040;
-  --good:#00d9f7; --live:#ff4b55; --miss:#5c6396; --gold:#ffcd44; --glow:#0232ff; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#000040; --surface:#0a0a55; --ink:#ffffff; --muted:#a9b0d6; --line:#22227a; --chip:#15156b;
-  --accent:#00eeff; --accent-ink:#000040; --board:#ffffff; --board-ink:#000040;
-  --good:#00d9f7; --live:#ff4b55; --miss:#5c6396; --gold:#ffcd44; --glow:#0232ff; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg) linear-gradient(180deg,color-mix(in srgb,var(--glow) 55%,transparent),transparent 420px) no-repeat;min-height:100vh;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+body{background:var(--bg) linear-gradient(180deg,color-mix(in srgb,var(--glow) 55%,transparent),transparent 420px) no-repeat;min-height:100vh;color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:max(20px,calc(env(safe-area-inset-top,0px) + 8px));padding-bottom:max(48px,calc(env(safe-area-inset-bottom,0px) + 32px));
+  -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+button,a,input{touch-action:manipulation}
 #app{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -53,7 +59,7 @@ button{cursor:pointer}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .panel h2{font-family:var(--display);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0}
 .muted{color:var(--muted)}
-.small{font-size:13px}
+.small{font-size:14px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{border:1px solid var(--line);background:var(--chip);border-radius:6px;padding:7px 14px;font-weight:600}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -82,7 +88,13 @@ a.btn{text-decoration:none;display:inline-block}
 .digit{width:44px;height:48px;border-radius:6px;border:0;background:var(--board);color:var(--board-ink);font-family:var(--display);font-weight:700;font-size:28px;text-align:center;display:grid;place-items:center;font-variant-numeric:tabular-nums}
 .digit.livebox{background:var(--live);color:var(--accent-ink)}
 input.digit{padding:0}
-input.digit::placeholder{color:var(--board-ink);opacity:.3}
+/* "No prediction" dash: drawn as a bar (not a "–" character) so it sits exactly in the middle
+   of score boxes and table cells, whatever the font. Empty inputs draw the same bar as a background. */
+.nil{display:block;width:.6em;min-width:9px;height:2px;border-radius:1px;background:currentColor;margin:0 auto}
+input.digit::placeholder,input.qbox::placeholder{color:transparent}
+input.digit:placeholder-shown,input.qbox:placeholder-shown{
+  background-image:linear-gradient(color-mix(in srgb,var(--board-ink) 40%,transparent),color-mix(in srgb,var(--board-ink) 40%,transparent));
+  background-size:12px 2px;background-repeat:no-repeat;background-position:center}
 .digit.ghost{background:var(--chip);color:var(--muted)}
 .under{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--muted);align-items:center}
 .pts{display:inline-block;font-family:var(--display);font-weight:700;font-size:15px;border-radius:999px;padding:0 8px;background:var(--good);color:var(--surface);font-variant-numeric:tabular-nums}
@@ -157,7 +169,6 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .qscore{display:flex;align-items:center;gap:3px}
 .qscore .sep{font-weight:700;color:var(--muted)}
 .qbox{width:36px;height:38px;border-radius:6px;border:0;padding:0;background:var(--board);color:var(--board-ink);font-family:var(--display);font-weight:700;font-size:22px;text-align:center;display:grid;place-items:center;font-variant-numeric:tabular-nums}
-.qbox::placeholder{color:var(--board-ink);opacity:.3}
 .qbox.ghost{background:var(--chip);color:var(--muted)}
 .qok{color:var(--good);font-weight:700;font-size:13px;text-align:center}
 .qfoot{padding:8px 12px;border-top:1px solid var(--line)}
@@ -179,13 +190,30 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .rc-row:first-child{border-top:0}
 .rc-row.mine{background:color-mix(in srgb,var(--chip) 70%,transparent);border-radius:6px}
 .rc-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rc-pick{font-family:var(--display);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.rc-pick{font-family:var(--display);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;text-align:center}
 .rc-tags{display:flex;gap:3px;flex-wrap:wrap}
 .rc-tags .tag{padding:1px 5px}
 .pts.top{box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 40%,transparent)}
 .mdtotal{display:flex;flex-direction:column;gap:6px}
 .periods td.best{font-weight:700;color:var(--gold)}
+/* Oyuncu analizleri */
+.ins{display:grid;grid-template-columns:1fr;gap:10px;align-items:start}
+@media (min-width:640px){.ins{grid-template-columns:1fr 1fr}}
+.icard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--chip) 45%,transparent)}
+.icard.mine{border-color:var(--accent)}
+.icard h3{margin:0;font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.icard dl{margin:0;display:flex;flex-direction:column;gap:7px}
+.irow{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:baseline}
+.irow dt{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.irow dd{margin:0;font-weight:600;line-height:1.25}
+.irow dd small{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:2px}
 .periods td.l small::before{content:"· "}
+.periods td.l small{margin-left:4px}
+.periods tr.wk td{color:var(--muted);padding-top:8px;padding-bottom:8px}
+.periods tr.wk td.l{color:var(--ink)}
+.periods tr.sum td{font-weight:700;font-size:17px}
+.periods tr.sum td.l{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em}
+.periods tbody+tbody tr:first-child td{border-top:2px solid var(--ink)}
 .periods th.mine,.periods td.mine{background:color-mix(in srgb,var(--chip) 70%,transparent)}
 th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
@@ -209,6 +237,7 @@ th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
   .lt .pk .pts{display:block;width:fit-content;margin:3px auto 0}
   .lt tfoot td{font-size:17px}
   th.opt,td.opt{display:none}
+  .standings th.opt,.standings td.opt{display:table-cell}
   td.name{white-space:normal}
   .league td,.league th{padding:8px 5px}
   .league td.name{font-size:14px}
@@ -221,6 +250,8 @@ th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
   .periods th{font-size:10px;letter-spacing:.04em;white-space:normal;line-height:1.2}
   .periods td.l small{display:block;font-size:11px;line-height:1.2}
   .periods td.l small::before{content:none}
+  .periods td.l small{margin-left:0}
+  .periods tr.sum td{font-size:14px}
 }
 /* Below full desktop width the six tabs form a 3x2 grid instead of a row that would scroll. */
 @media (max-width:880px){
@@ -450,9 +481,11 @@ function predictView(ms,wks){
       h("button",{id:"save",class:"btn primary",disabled:!dirty||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":"Tahminleri kaydet")):null)
 }
 function digitIn(id,val,label,onv){
-  return h("input",{id,class:"digit",value:val,inputmode:"numeric",maxlength:"2",placeholder:"–","aria-label":label,autocomplete:"off",
+  return h("input",{id,class:"digit",value:val,inputmode:"numeric",maxlength:"2",placeholder:" ","aria-label":label,autocomplete:"off",
     oninput:e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,2);onv(e.target.value)}})}
-const digit=(v,cls)=>h("span",{class:"digit"+(cls?" "+cls:"")},v==null||v===""?"–":String(v));
+/* Centred "no prediction / no score yet" dash (see .nil). */
+const nil=(cls)=>h("span",{class:"nil"+(cls?" "+cls:""),role:"img","aria-label":"yok"});
+const digit=(v,cls)=>h("span",{class:"digit"+(cls?" "+cls:"")},v==null||v===""?nil():String(v));
 function matchRow(m,me){
   const st=locked(m),mine=me?(S.picks[me]||{})[m.id]:null,d=S.drafts[m.id];
   let center;
@@ -518,15 +551,17 @@ function pickTable(list,footLabel){
       sc,
       ps.map(p=>{const x=(S.picks[p.id]||{})[m.id],cls="pk c"+(p.id===S.me?" mine":"");
         if(!lk){const inn=x||S.submitted.has(p.id+"|"+m.id);
-          return h("td",{class:cls,title:inn?"Tahmin yapıldı, haftanın ilk maçı başlayınca görünecek":"Henüz tahmin yok"},h("span",{class:"small muted"},inn?"✓":"–"))}
-        if(!x)return h("td",{class:cls,title:"Tahmin yok"},h("span",{class:"small muted"},"–"));
+          return h("td",{class:cls,title:inn?"Tahmin yapıldı, haftanın ilk maçı başlayınca görünecek":"Henüz tahmin yok"},inn?h("span",{class:"small muted"},"✓"):nil("muted"))}
+        if(!x)return h("td",{class:cls,title:"Tahmin yok"},nil("muted"));
         const r=pts[p.id];
         return h("td",{class:cls},x.h+"–"+x.a,r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":""),title:poolsFor(m).filter(([k])=>r.hit[k]).map(([,l])=>l).join(", ")||"İsabet yok"},fmtPts(r.total)):null)}))});
   const anyProv=Object.values(totals).some(t=>t.prov>0);
   return {anyProv,el:h("div",{class:"tablewrap"},h("table",{class:"lt"},
       h("thead",{},h("tr",{},h("th",{class:"l"},"Maç"),h("th",{class:"c sc"},"Skor"),ps.map(p=>h("th",{class:"c"+(p.id===S.me?" mine":""),text:p.short})))),
       h("tbody",{},rows),
-      h("tfoot",{},h("tr",{},h("td",{class:"l",colspan:"2"},footLabel),ps.map(p=>h("td",{class:"c"+(p.id===S.me?" mine":"")},fmtPts(totals[p.id].fin+totals[p.id].prov)))))))}
+      // Separate score-column cell (not colspan) so the totals stay under the right players when
+      // small phones hide the score column.
+      h("tfoot",{},h("tr",{},h("td",{class:"l"},footLabel),h("td",{class:"sc"}),ps.map(p=>h("td",{class:"c"+(p.id===S.me?" mine":"")},fmtPts(totals[p.id].fin+totals[p.id].prov)))))))}
 }
 
 /* ---------- Standings ---------- */
@@ -552,36 +587,87 @@ function standingsView(ms){
   rows.forEach(r=>r.pts=r.a+r.b);
   rows.sort((a,b)=>b.pts-a.pts||b.c.exact-a.c.exact||a.p.name.localeCompare(b.p.name));
   let rank=0,prev=null;rows.forEach((r,i)=>{const key=fmtPts(r.pts)+"/"+r.c.exact;if(key!==prev){rank=i+1;prev=key}r.rank=rank});
-  const wkTh=w=>h("th",{class:w===S.week?"per":null,title:w+". hafta (Şampiyonlar Ligi dahil)"},w+". hf");
+  // Points are in the periods table below; this table ranks by the period total and shows hit counts.
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     h("div",{class:"tablewrap"},h("table",{class:"standings"},
       h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),
-        POOLS.map(([k,l])=>h("th",{class:"opt",title:l+" isabeti (sezon)"},SHORT[k])),h("th",{class:"opt",title:"Puanlanan maç (sezon)"},"Maç"),
-        wkTh(pr),wkTh(pr+1))),
+        POOLS.map(([k,l])=>h("th",{class:"opt",title:l+" isabeti (sezon)"},SHORT[k])),h("th",{class:"opt",title:"Puanlanan maç (sezon)"},"Maç"))),
       h("tbody",{},rows.map(r=>h("tr",{class:(r.rank===1&&r.pts>0?"leader ":"")+(r.p.id===S.me?"isme":"")},
         h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),
-        POOLS.map(([k])=>h("td",{class:"opt"},r.c[k])),h("td",{class:"opt"},r.n),
-        h("td",{class:pr===S.week?"per":null},fmtPts(r.a)),h("td",{class:pr+1===S.week?"per":null},fmtPts(r.b))))))),
-    h("p",{class:"small muted",style:"margin:0"},`Sıralama ${pr}–${pr+1}. hafta dönemindeki toplam puana göre; dönem toplamları aşağıdaki tabloda. Hafta sütunları Şampiyonlar Ligi maçlarını da içerir: hafta içi oynanan bir Şampiyonlar Ligi maçı, ardından gelen Süper Lig haftasına sayılır. Hafta seçimi Süper Lig Tahmin sekmesindeki haftayı izler.`),
+        POOLS.map(([k])=>h("td",{class:"opt"},r.c[k])),h("td",{class:"opt"},r.n)))))),
+    h("p",{class:"small muted",style:"margin:0"},`Sıralama ${pr}–${pr+1}. hafta dönemindeki toplam puana göre (puanlar aşağıdaki tabloda). TS, K, Ü/A, KG: sezon boyunca o kategoride kaç kez isabet; Maç: puanlanan maç sayısı. Şampiyonlar Ligi maçları, ardından gelen Süper Lig haftasına sayılır. Dönem seçimi Süper Lig Tahmin sekmesindeki haftayı izler.`),
+    insightsView(),
     periodsView(B),
     h("section",{class:"panel"},h("h2",{},"Puanlama"),
       h("p",{class:"small muted",style:"margin:0"},"Her maçta puan havuzları var. Her havuz, o kategoriyi doğru bilen oyuncular arasında eşit bölünür; doğru olup olmadığı tahmin ettiğin skordan hesaplanır. Kimse bilemezse o puanlar kimseye verilmez."),
       h("div",{class:"rules"},POOLS.map(([k,l,pool])=>h("div",{class:"rule"},h("b",{},String(pool)),h("span",{},l+{exact:" (iki takımın golü de doğru)",winner:" (ev sahibi, deplasman veya beraberlik)",btts:" (var ya da yok doğru)",ou:" (toplam gol 3+ ya da 0–2 doğru)"}[k])))),
       h("p",{class:"small muted",style:"margin:0"},`Bu puanlama ${NEW_RULES_WEEK}. haftadan itibaren geçerli (Şampiyonlar Ligi'nde 12. hafta bittikten sonraki maçlar). 1–12. haftalarda Karşılıklı gol 150 puandı ve Üst/Alt yoktu. Örnek: iki oyuncu tam skoru bilirse o havuzdan 125'er puan alır. Bu sezon şu ana kadar ${fin.length} maç tamamlandı. Puanlar eşitse tam skor sayısı fazla olan öne geçer.`)))
 }
-/* Every two-week period from week 12 to the current one, with the period winner marked. */
+/* Player insights from every finished match a player predicted (Süper Lig and Champions League):
+   best single match, prediction style, strongest category, favourite score, luckiest team and how
+   often they score points. Only finished (locked) matches are used, so nothing hidden is revealed. */
+function insightsView(){
+  const fin=[...S.matches,...S.ucl.filter(canPredict)].filter(isFinal);
+  const data=S.players.map(p=>{const rows=[];
+    for(const m of fin){const x=(S.picks[p.id]||{})[m.id];if(!x)continue;
+      const r=(matchPoints(m)||{})[p.id]||{total:0,hit:hits(x,m.hs,m.as)};rows.push({m,x,r})}
+    return {p,rows}});
+  if(!data.some(d=>d.rows.length))return null;
+  const pct=x=>"%"+Math.round(x*100);
+  // Hit rate per category, only over matches where that category was scored (Ü/A from week 13).
+  const rate=(rows,k)=>{const el=rows.filter(o=>poolsFor(o.m).some(([q])=>q===k));return {n:el.length,hit:el.filter(o=>o.r.hit[k]).length}};
+  const group={};POOLS.forEach(([k])=>{let n=0,hit=0;data.forEach(d=>{const r=rate(d.rows,k);n+=r.n;hit+=r.hit});group[k]=n?hit/n:0});
+  const row=(label,val,sub)=>h("div",{class:"irow"},h("dt",{},label),h("dd",{},val,sub?h("small",{},sub):null));
+  const card=({p,rows})=>{
+    if(!rows.length)return h("div",{class:"icard"+(p.id===S.me?" mine":"")},h("h3",{text:p.name}),h("p",{class:"small muted",style:"margin:0"},"Henüz sonuçlanmış tahmini yok."));
+    // Best single match.
+    const best=rows.reduce((a,b)=>b.r.total>a.r.total?b:a);
+    // Style: which result they back, and how many goals they expect compared with what happened.
+    const n=rows.length,home=rows.filter(o=>o.x.h>o.x.a).length/n,draw=rows.filter(o=>o.x.h===o.x.a).length/n,away=1-home-draw;
+    const pg=rows.reduce((s,o)=>s+o.x.h+o.x.a,0)/n,ag=rows.reduce((s,o)=>s+o.m.hs+o.m.as,0)/n;
+    const lean=draw>=.3?"Beraberlikçi":home>=.6?"Ev sahibi taraftarı":away>=.4?"Deplasmana sık şans verir":"Dengeli";
+    const goals=pg-ag>=.5?"bol gollü maç bekler":pg-ag<=-.5?"az gollü maç bekler":"gol sayısını iyi tutturur";
+    // Strongest category: furthest above the group's hit rate (at least 5 matches).
+    const cats=POOLS.map(([k,l])=>({k,l,...rate(rows,k)})).filter(c=>c.n>=5).map(c=>({...c,r:c.hit/c.n,d:c.hit/c.n-group[c.k]}));
+    // If they are not above the group anywhere, show their best hit rate instead.
+    const above=cats.filter(c=>c.d>0).sort((a,b)=>b.d-a.d);
+    const strong=above[0]||cats.sort((a,b)=>b.r-a.r)[0];
+    const strongLabel=above.length?"Güçlü yanı":"En iyi kategorisi";
+    // Favourite score.
+    const sc={};rows.forEach(o=>{const s=o.x.h+"–"+o.x.a;sc[s]=(sc[s]||0)+1});
+    const fav=Object.entries(sc).sort((a,b)=>b[1]-a[1])[0];
+    // Team whose matches earned them the most points.
+    const tp={};rows.forEach(o=>{[o.m.home,o.m.away].forEach(t=>tp[t]=(tp[t]||0)+o.r.total)});
+    const lucky=Object.entries(tp).sort((a,b)=>b[1]-a[1])[0];
+    const scoredN=rows.filter(o=>o.r.total>0).length;
+    return h("div",{class:"icard"+(p.id===S.me?" mine":"")},h("h3",{text:p.name}),
+      h("dl",{},
+        row("En iyi maç",fmtPts(best.r.total)+" puan",`${best.m.home} ${best.m.hs}–${best.m.as} ${best.m.away} · tahmin ${best.x.h}–${best.x.a}`),
+        row("Tahmin tarzı",`${lean}, ${goals}`,`Ev ${pct(home)} · Beraberlik ${pct(draw)} · Deplasman ${pct(away)} · tahmin ort. ${pg.toFixed(1)} gol (maçlarda ${ag.toFixed(1)})`),
+        strong?row(strongLabel,strong.l,`${pct(strong.r)} isabet · grup ortalaması ${pct(group[strong.k])}`):null,
+        row("Favori skor",fav[0],`${fav[1]} kez tahmin etti`),
+        lucky&&lucky[1]>0?row("Şanslı takımı",lucky[0],`maçlarından ${fmtPts(lucky[1])} puan`):null,
+        row("Puan aldığı maç",pct(scoredN/n),`${n} maçın ${scoredN} tanesinde`)))};
+  return h("section",{class:"panel"},h("h2",{},"Oyuncu analizleri"),
+    h("div",{class:"ins"},data.map(card)),
+    h("p",{class:"small muted",style:"margin:0"},`Tahmin yapılmış ve sonuçlanmış ${new Set(data.flatMap(d=>d.rows.map(o=>o.m.id))).size} maçtan (Süper Lig ve Şampiyonlar Ligi). Güçlü yanı: oyuncunun grup ortalamasının en çok üstünde olduğu kategori (en az 5 maç). Maç sayısı arttıkça analizler daha anlamlı hale gelir.`))}
+/* Every two-week period from week 12 to the current one, newest first. Each period has a row for
+   its first week, its second week and their total; the period winner is marked on the total. */
 function periodsView(B){
   const lastW=Math.max(S.week||0,...Object.keys(B.wk).map(Number));
   const periods=[];for(let p=periodOf(12);p<=periodOf(lastW);p+=2)periods.push(p);
   if(!periods.length)return null;
+  const cells=(v,best)=>S.players.map(p=>{const x=v[p.id]||0;
+    return h("td",{class:(best!=null&&x===best&&best>0?"best ":"")+(p.id===S.me?"mine":"")},fmtPts(x))});
   return h("section",{class:"panel"},h("h2",{},"İki haftalık dönemler"),
     h("div",{class:"tablewrap"},h("table",{class:"periods"},
       h("thead",{},h("tr",{},h("th",{class:"l"},"Hafta"),S.players.map(p=>h("th",{class:p.id===S.me?"mine":null,text:p.short})))),
-      h("tbody",{},periods.slice().reverse().map(pr=>{const v=B.per[pr]||{},best=Math.max(0,...S.players.map(p=>v[p.id]||0));
+      periods.slice().reverse().map(pr=>{const v=B.per[pr]||{},best=Math.max(0,...S.players.map(p=>v[p.id]||0));
         const live=[...S.matches,...S.ucl].some(m=>periodOf(weekBucket(m))===pr&&!isFinal(m)&&m.state!=="post");
-        return h("tr",{},h("td",{class:"l"},`${pr}–${pr+1}`,live?h("small",{class:"muted"}," Devam Ediyor"):null),
-          S.players.map(p=>{const x=v[p.id]||0;return h("td",{class:(x===best&&best>0?"best ":"")+(p.id===S.me?"mine":"")},fmtPts(x))}))})))),
-    h("p",{class:"small muted",style:"margin:0"},"Kalın rakam o dönemin birincisi. Devam eden dönemlerde canlı maçların puanları da gösterilir."))}
+        return h("tbody",{},
+          [pr,pr+1].map(w=>h("tr",{class:"wk"},h("td",{class:"l"},`${w}. Hafta`),cells(B.wk[w]||{},null))),
+          h("tr",{class:"sum"},h("td",{class:"l"},"Toplam",live?h("small",{class:"muted"},"Devam Ediyor"):null),cells(v,best)))}))),
+    h("p",{class:"small muted",style:"margin:0"},"Altın renkli rakam o dönemin birincisi. Devam eden dönemlerde canlı maçların puanları da gösterilir."))}
 
 /* ---------- Champions League ----------
    Turkish teams' matches are predicted like Süper Lig matches (same scoring, same Puan Tablosu);
@@ -614,13 +700,13 @@ function quickRow(m){
       el.closest(".qrow").classList.toggle("changed",!!S.drafts[m.id]);updateSaveBar()};
     mid=h("div",{class:"qscore"},quickIn("ph-"+m.id,hv,m.home+" golü",(v,el)=>set("h",v,el)),h("span",{class:"sep"},":"),quickIn("pa-"+m.id,av,m.away+" golü",(v,el)=>set("a",v,el)));
   } else {
-    mid=h("div",{class:"qscore"},h("span",{class:"qbox ghost"},"–"),h("span",{class:"sep"},":"),h("span",{class:"qbox ghost"},"–"));
+    mid=h("div",{class:"qscore"},h("span",{class:"qbox ghost"},nil()),h("span",{class:"sep"},":"),h("span",{class:"qbox ghost"},nil()));
   }
   return h("div",{class:"qrow"+(changed?" changed":"")+(hasTR(m)?" tr":"")},
     h("span",{class:"qh",text:m.home}),mid,h("span",{class:"qa",text:m.away}),
     h("span",{class:"qok","aria-label":mine?"Kayıtlı":"Tahmin yok"},mine&&!changed?"✓":""))}
 function quickIn(id,val,label,onv){
-  return h("input",{id,class:"qbox",value:val,inputmode:"numeric",pattern:"[0-9]*",maxlength:"2",placeholder:"–","aria-label":label,autocomplete:"off",enterkeyhint:"next",
+  return h("input",{id,class:"qbox",value:val,inputmode:"numeric",pattern:"[0-9]*",maxlength:"2",placeholder:" ","aria-label":label,autocomplete:"off",enterkeyhint:"next",
     onfocus:e=>e.target.select(),
     onkeydown:e=>{if(e.key==="Enter"){e.preventDefault();focusNext(e.target)}},
     oninput:e=>{const el=e.target;el.value=el.value.replace(/\D/g,"").slice(0,2);onv(el.value,el);
@@ -675,7 +761,7 @@ function resultCard(m){
     h("div",{class:"rc-rows"},S.players.map(p=>{const x=(S.picks[p.id]||{})[m.id],r=pts[p.id];
       return h("div",{class:"rc-row"+(p.id===S.me?" mine":"")},
         h("b",{text:p.short}),
-        h("span",{class:"rc-pick"},x?`${x.h}–${x.a}`:"–"),
+        h("span",{class:"rc-pick"},x?`${x.h}–${x.a}`:nil("muted")),
         h("span",{class:"rc-tags"},sc&&x?pools.map(([k,l])=>h("span",{class:"tag"+(r&&r.hit[k]?" hit":""),title:l},SHORT[k])):!x?h("span",{class:"small muted"},"tahmin yok"):null),
         r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":"")+(r.total===best&&best>0?" top":"")},"+"+fmtPts(r.total)):h("span",{}))})))}
 function uclResultsView(){
@@ -765,11 +851,10 @@ function leagueView(ms){
 /* Polls get_state: every 30 s while a match is live, otherwise every 2 minutes,
    and right away when the tab becomes visible again. */
 let pollTimer=null,inFlight=false;
-async function refresh(){
-  if(inFlight)return;inFlight=true;clearTimeout(pollTimer);
-  try{
-    const st=await rpc("get_state");
-    S.skew=Date.parse(st.now)-Date.now();
+/* Applies a get_state result. `cached` = the copy saved on this phone from the last visit, shown
+   straight away (and when offline) until fresh data arrives; it must not reset the clock offset. */
+function applyState(st,cached){
+    if(!cached)S.skew=Date.parse(st.now)-Date.now();
     S.players=st.players||[];
     const all=(st.matches||[]).map(m=>({...m,hs:m.hs==null?null:Number(m.hs),as:m.as==null?null:Number(m.as)}));
     S.matches=all.filter(m=>!isUcl(m));S.ucl=all.filter(isUcl);
@@ -778,8 +863,15 @@ async function refresh(){
     S.uclTable=Array.isArray(st.ucl_table)?st.ucl_table:[];
     const picks={};(st.picks||[]).forEach(x=>{(picks[x.p]=picks[x.p]||{})[x.m]={h:x.h,a:x.a}});S.picks=picks;mergeMine();
     S.submitted=new Set((st.submitted||[]).map(x=>x.p+"|"+x.m));
-    S.syncedAt=st.synced_at;S.loaded=true;S.error=false;S.slow=false;
-    if(S.me&&!playerById(S.me))signOut();
+    S.syncedAt=st.synced_at;S.loaded=true;
+    if(!cached){S.error=false;S.slow=false;if(S.me&&!playerById(S.me))signOut()}
+}
+async function refresh(){
+  if(inFlight)return;inFlight=true;clearTimeout(pollTimer);
+  try{
+    const st=await rpc("get_state");
+    applyState(st,false);
+    lsSet("state",JSON.stringify(st));
   }catch(e){S.error=true}
   inFlight=false;render();
   // Poll every 30 s while any match is on (or should be: kickoff passed, not finished yet).
@@ -787,15 +879,20 @@ async function refresh(){
   pollTimer=setTimeout(refresh,S.matches.some(on)||S.ucl.some(on)?30000:120000);
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
+window.addEventListener("online",()=>refresh());
 /* Warn before leaving with unsaved predictions. */
 window.addEventListener("beforeunload",e=>{if(S.me&&dirtyCount()){e.preventDefault();e.returnValue=""}});
 
 S.tab=(location.hash||"").slice(1);if(!TABS.some(([k])=>k===S.tab))S.tab="predict";
 window.addEventListener("hashchange",()=>{const t=location.hash.slice(1);if(TABS.some(([k])=>k===t)){S.tab=t;render()}});
+// Show the last saved data immediately, then fetch fresh data.
+try{const c=JSON.parse(lsGet("state")||"null");if(c&&c.matches)applyState(c,true)}catch(e){}
 render();
 setTimeout(()=>{if(!S.loaded){S.slow=true;render()}},10000);
 setInterval(render,30000);
 refresh().then(restoreSession);
+// Home-screen app support: offline start and instant opening (see sw.js).
+if("serviceWorker" in navigator&&location.protocol!=="file:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>

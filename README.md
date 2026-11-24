@@ -16,6 +16,14 @@ A Süper Lig 2026–27 score-prediction league for four friends.
   Every match is predicted; they score like Süper Lig matches and count in the main Puan Tablosu.
   Each day (Istanbul date) locks at that day's first kickoff. Turkish teams' matches are highlighted.
 
+- **Phone app:** the site is a home-screen web app. On an iPhone, open it in Safari, tap Share, then
+  "Add to Home Screen" (Turkish: "Ana Ekrana Ekle"). `manifest.webmanifest` and `icons/` give it its name,
+  icon and colours; `sw.js` lets it open instantly and offline (the page is always fetched fresh when
+  online, Supabase data is never cached). The page also keeps the last loaded data on the phone, so it
+  shows the latest known scores straight away. The icon (a football under a floodlight with a cyan "?")
+  was drawn as SVG and exported to PNG; to change it, replace the PNGs in `icons/` (180, 192 and 512 px,
+  a 512 px maskable version with the artwork at 80% size, and a 32 px favicon).
+
 ## Scoring
 
 Each match has pools split equally between the players who got that category right

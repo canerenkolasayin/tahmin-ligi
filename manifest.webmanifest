@@ -1,0 +1,18 @@
+{
+  "name": "Tahmin Ligi",
+  "short_name": "Tahmin Ligi",
+  "description": "Süper Lig ve Şampiyonlar Ligi skor tahmin ligi",
+  "lang": "tr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000040",
+  "theme_color": "#000040",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
