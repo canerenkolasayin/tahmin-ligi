@@ -43,22 +43,24 @@ button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.brand h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.brand h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:.01em;margin:0;text-transform:capitalize}
 .brand h1 span{color:var(--accent)}
-.brand p{margin:4px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:capitalize}
 .me{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 .me b{color:var(--ink);font-weight:600}
 .link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .banner{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--muted)}
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--accent);overflow-x:auto}
-.tab{background:none;border:0;padding:8px 9px 6px;font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-radius:6px 6px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab{background:none;border:0;padding:8px 9px 6px;font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.03em;text-transform:capitalize;color:var(--muted);border-radius:6px 6px 0 0;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block}
 @media (prefers-reduced-motion:no-preference){.dot{animation:pulse 1.4s ease-in-out infinite}}
 @keyframes pulse{50%{opacity:.35}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.panel h2{font-family:var(--display);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0}
+.panel h2{font-family:var(--display);font-size:22px;font-weight:700;text-transform:capitalize;letter-spacing:.03em;margin:0}
 .muted{color:var(--muted)}
+/* Inside capitalised labels: keep Turkish suffixes after an apostrophe lower-case (20:45'de). */
+.nocap{text-transform:none}
 .small{font-size:14px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{border:1px solid var(--line);background:var(--chip);border-radius:6px;padding:7px 14px;font-weight:600}
@@ -70,14 +72,14 @@ a.btn{text-decoration:none;display:inline-block}
 .pin{width:120px;letter-spacing:.5em;font-family:var(--display);font-size:22px;font-weight:700;text-align:center}
 .err{color:var(--accent);font-size:13px}
 .weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.weeknav .wk{font-family:var(--display);font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.03em;text-align:center}
+.weeknav .wk{font-family:var(--display);font-weight:700;font-size:26px;text-transform:capitalize;letter-spacing:.03em;text-align:center}
 .weeknav .wk small{display:block;font-family:var(--body);font-weight:500;font-size:13px;color:var(--muted);letter-spacing:0;text-transform:none}
 .arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:18px;line-height:1;flex:none}
 .arrow:disabled{opacity:.3;cursor:default}
 .list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .match{padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line)}
 .match:first-child{border-top:0}
-.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.05em;text-transform:capitalize;color:var(--muted)}
 .state{font-weight:600}
 .state.open{color:var(--good)} .state.live{color:var(--live)} .state.ft{color:var(--ink)} .state.lock{color:var(--muted)}
 .fixture{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
@@ -100,12 +102,12 @@ input.digit:placeholder-shown,input.qbox:placeholder-shown{
 .pts{display:inline-block;font-family:var(--display);font-weight:700;font-size:15px;border-radius:999px;padding:0 8px;background:var(--good);color:var(--surface);font-variant-numeric:tabular-nums}
 .pts.zero{background:var(--miss)}
 .pts.prov{background:none;color:var(--live);box-shadow:inset 0 0 0 1.5px var(--live)}
-.tag{display:inline-block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:1px 6px;background:var(--chip);color:var(--muted)}
+.tag{display:inline-block;font-size:11px;letter-spacing:.04em;text-transform:capitalize;border-radius:4px;padding:1px 6px;background:var(--chip);color:var(--muted)}
 .tag.hit{background:var(--good);color:var(--surface)}
 .savebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
-th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:10px 12px;border-bottom:2px solid var(--ink);white-space:nowrap}
+th{font-size:11px;letter-spacing:.08em;text-transform:capitalize;color:var(--muted);font-weight:600;text-align:right;padding:10px 12px;border-bottom:2px solid var(--ink);white-space:nowrap}
 td{padding:11px 12px;text-align:right;border-top:1px solid var(--line);vertical-align:middle}
 th.l,td.l{text-align:left}
 th.c,td.c{text-align:center}
@@ -131,7 +133,19 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .league td.name{font-size:15px}
 .league td.total{font-size:20px}
 .league tr.zone td.rank{color:var(--accent)}
-.sub{font-family:var(--display);font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:4px 0 0}
+/* Fixed number-column widths so the Süper Lig and Champions League tables line up exactly
+   (the team column takes the rest). Numbers and their headers are right-aligned. */
+.league{table-layout:fixed}
+.league th.rk{width:40px}
+.league th.n{width:36px}
+.league th.av{width:48px}
+.league th.pt{width:44px}
+.league th.fm{width:110px}
+.league td.opt.l{white-space:nowrap}
+.league td.name{white-space:normal;overflow-wrap:anywhere}
+@media (max-width:600px){.league th.rk{width:32px}.league th.n{width:28px}.league th.av{width:38px}.league th.pt{width:34px}}
+@media (max-width:400px){.league th.rk{width:28px}.league th.n{width:24px}.league th.av{width:34px}.league th.pt{width:30px}}
+.sub{font-family:var(--display);font-size:19px;font-weight:700;text-transform:capitalize;letter-spacing:.03em;margin:4px 0 0}
 .matchwrap{border-top:1px solid var(--line);padding-bottom:12px}
 .matchwrap:first-child{border-top:0}
 .matchwrap .match{border-top:0}
@@ -154,8 +168,8 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 /* Champions League quick entry */
 .day{display:flex;flex-direction:column;gap:8px}
 .dayhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.dayhead b{font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
-.dayhead .state{font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.dayhead b{font-family:var(--display);font-size:20px;font-weight:700;text-transform:capitalize;letter-spacing:.03em}
+.dayhead .state{font-size:12px;letter-spacing:.05em;text-transform:capitalize}
 .prog{margin-left:8px;font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--chip);color:var(--muted);vertical-align:3px}
 .prog.full{background:var(--good);color:var(--surface)}
 .qrow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 14px;align-items:center;gap:8px;padding:6px 8px 6px 10px;border-top:1px solid var(--line);border-left:3px solid transparent}
@@ -171,42 +185,39 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .qbox{width:36px;height:38px;border-radius:6px;border:0;padding:0;background:var(--board);color:var(--board-ink);font-family:var(--display);font-weight:700;font-size:22px;text-align:center;display:grid;place-items:center;font-variant-numeric:tabular-nums}
 .qbox.ghost{background:var(--chip);color:var(--muted)}
 .qok{color:var(--good);font-weight:700;font-size:13px;text-align:center}
+/* Locked Champions League rows: score boxes plus your own prediction underneath. */
+.qbox.live{background:var(--live);color:var(--accent-ink)}
+.qsub{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:5px;font-size:13px;color:var(--muted);padding:1px 0 2px}
+.qsub .st{font-weight:600;letter-spacing:.03em}
+.qsub .st.live{color:var(--live)}
+.qsub .pts{font-size:14px}
 .qfoot{padding:8px 12px;border-top:1px solid var(--line)}
 .savebar.sticky{position:sticky;bottom:0;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 16px rgba(0,0,0,.18)}
 .lt tr.trrow td.fx{box-shadow:inset 3px 0 0 var(--accent)}
-/* ŞL Sonuçlar cards */
-.rcards{display:flex;flex-direction:column;gap:10px}
-.rcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;border-left:3px solid var(--line)}
-.rcard.tr{border-left-color:var(--accent)}
-.rc-head{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center}
-.rc-h,.rc-a{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.1;overflow-wrap:break-word}
-.rc-h{text-align:right}
-.rc-sc{font-family:var(--display);font-weight:700;font-size:24px;background:var(--board);color:var(--board-ink);border-radius:6px;padding:2px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.rc-sc.live{background:var(--live);color:var(--accent-ink)}
-.rc-status{text-align:center;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.rc-status.live{color:var(--live)}
-.rc-rows{display:flex;flex-direction:column;border-top:1px solid var(--line)}
-.rc-row{display:grid;grid-template-columns:72px 40px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 2px;border-top:1px solid var(--line);font-size:14px}
-.rc-row:first-child{border-top:0}
-.rc-row.mine{background:color-mix(in srgb,var(--chip) 70%,transparent);border-radius:6px}
-.rc-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rc-pick{font-family:var(--display);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;text-align:center}
-.rc-tags{display:flex;gap:3px;flex-wrap:wrap}
-.rc-tags .tag{padding:1px 5px}
-.pts.top{box-shadow:0 0 0 2px color-mix(in srgb,var(--good) 40%,transparent)}
-.mdtotal{display:flex;flex-direction:column;gap:6px}
 .periods td.best{font-weight:700;color:var(--gold)}
+/* Süper Lig / Şampiyonlar Ligi switch (Liglerin Puan Tablosu) */
+/* Sliding toggle (like an iPhone setting): a white knob slides under the chosen league. */
+/* Full width, so it lines up with the table or cards below it. */
+.seg{position:relative;display:grid;grid-template-columns:1fr 1fr;width:100%;padding:3px;background:var(--chip);border-radius:999px}
+.seg .knob{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.seg.r .knob{transform:translateX(100%)}
+.seg button{position:relative;border:0;background:none;padding:6px 4px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:capitalize;white-space:nowrap;color:var(--muted)}
+.seg button[aria-pressed="true"]{color:var(--accent-ink)}
+@media (prefers-reduced-motion:no-preference){.seg .knob{transition:transform .2s ease}.seg button{transition:color .2s}}
 /* Oyuncu analizleri */
 /* grid-auto-rows:1fr makes every row as tall as the tallest card, so all cards are the same size:
    the smallest size that fits every player's analysis. */
 .ins{display:grid;grid-template-columns:1fr;grid-auto-rows:1fr;gap:10px;align-items:stretch}
-@media (min-width:640px){.ins{grid-template-columns:1fr 1fr}}
+@media (min-width:640px){.ins{grid-template-columns:1fr 1fr}
+  /* A single card (the signed-in player's) spans the width, with its rows in two columns. */
+  .ins.one{grid-template-columns:1fr}
+  .ins.one .icard dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}}
 .icard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--chip) 45%,transparent)}
 .icard.mine{border-color:var(--accent)}
-.icard h3{margin:0;font-family:var(--display);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.icard h3{margin:0;font-family:var(--display);font-size:20px;font-weight:700;text-transform:capitalize;letter-spacing:.03em}
 .icard dl{margin:0;display:flex;flex-direction:column;gap:7px}
 .irow{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:baseline}
-.irow dt{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.irow dt{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:capitalize;color:var(--muted)}
 .irow dd{margin:0;font-weight:600;line-height:1.25}
 .irow dd small{display:block;font-weight:400;font-size:13px;color:var(--muted);margin-top:2px}
 .periods td.l small::before{content:"· "}
@@ -214,12 +225,12 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .periods tr.wk td{color:var(--muted);padding-top:8px;padding-bottom:8px}
 .periods tr.wk td.l{color:var(--ink)}
 .periods tr.sum td{font-weight:700;font-size:17px}
-.periods tr.sum td.l{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em}
+.periods tr.sum td.l{font-family:var(--display);text-transform:capitalize;letter-spacing:.03em}
 .periods tbody+tbody tr:first-child td{border-top:2px solid var(--ink)}
 .periods th.mine,.periods td.mine{background:color-mix(in srgb,var(--chip) 70%,transparent)}
 th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
-.empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:22px;text-transform:uppercase;margin-bottom:4px}
+.empty strong{display:block;color:var(--ink);font-family:var(--display);font-size:22px;text-transform:capitalize;margin-bottom:4px}
 .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .rule{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .rule b{font-family:var(--display);font-size:26px;line-height:1}
@@ -257,7 +268,10 @@ th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
 }
 /* Below full desktop width the six tabs form a 3x2 grid instead of a row that would scroll. */
 @media (max-width:880px){
-  .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-bottom:0;overflow:visible}
+  /* Five tabs: three on the first row, two wider ones on the second. */
+  .tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;border-bottom:0;overflow:visible}
+  .tabs .tab{grid-column:span 2}
+  .tabs .tab:nth-child(n+4){grid-column:span 3}
   .tab{justify-content:center;text-align:center;white-space:normal;line-height:1.1;font-size:15px;padding:8px 4px;letter-spacing:.02em;border-radius:6px;background:var(--chip);min-height:40px}
 }
 @media (max-width:480px){
@@ -306,7 +320,7 @@ const POOLS_OLD=[["exact","Tam skor",250],["winner","Kazanan",200],["btts","Kar�
 // Highest pool first; this order is used for columns, tags and the rules panel.
 const POOLS=[["exact","Tam skor",250],["winner","Kazanan",200],["ou","Üst/Alt 2,5",100],["btts","Karşılıklı gol",100]];
 const SHORT={exact:"TS",winner:"K",btts:"KG",ou:"Ü/A"};
-const TABS=[["predict","Süper Lig Tahmin"],["ucl","Şampiyonlar Ligi Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Ligin Puan Durumu"],["uclres","ŞL Sonuçlar"]];
+const TABS=[["predict","Süper Lig Tahmin"],["ucl","Şampiyonlar Ligi Tahmin"],["live","Canlı tablo"],["standings","Puan Tablosu"],["league","Liglerin Puan Tablosu"]];
 
 const S={matches:[],ucl:[],uclTable:[],uclWeek:null,trTeams:new Set(),weekEnds:[],players:[],picks:{},submitted:new Set(),syncedAt:null,skew:0,loaded:false,slow:false,error:false,
   me:null,pin:null,tab:"predict",week:null,drafts:{},saving:false,loginFor:null,pinErr:"",busy:false,toast:"",toastErr:false};
@@ -330,6 +344,7 @@ function h(tag,attrs,...kids){const e=document.createElement(tag);
 
 /* ---------- match + scoring logic ---------- */
 const fmtDate=new Intl.DateTimeFormat("tr-TR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const fmtShort=new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 const fmtTime=new Intl.DateTimeFormat("tr-TR",{hour:"2-digit",minute:"2-digit"});
 const dshort=new Intl.DateTimeFormat("tr-TR",{day:"numeric",month:"short"});
 const kick=m=>new Date(m.kickoff).getTime();
@@ -401,10 +416,10 @@ function render(){
     S.error?h("div",{class:"banner"},S.loaded?"Sunucuya ulaşılamıyor. Gösterilen skorlar güncel olmayabilir; tekrar deneniyor.":"Veriler yüklenemedi. Tekrar deneniyor."):null,
     !S.me&&loadedAll()&&(S.tab==="predict"||S.tab==="ucl")?loginPanel():null,
     h("div",{class:"tabs",role:"tablist"},TABS.map(([k,l])=>
-      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},(k==="live"&&anyLive)||((k==="ucl"||k==="uclres")&&uclLive)?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
+      h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},(k==="live"&&(anyLive||uclLive))||(k==="ucl"&&uclLive)?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
     !loadedAll()?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Yükleniyor"),"Fikstür ve tahminler getiriliyor.")):
     !ms.length?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Henüz fikstür yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek.")):
-    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):S.tab==="ucl"?uclView():S.tab==="uclres"?uclResultsView():predictView(ms,wks),
+    S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):S.tab==="ucl"?uclView():predictView(ms,wks),
     h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
 }
@@ -528,10 +543,15 @@ async function savePicks(){
 }
 
 /* ---------- Live table ---------- */
+/* Canlı tablo: Süper Lig week table, or (via the toggle) the Champions League results cards
+   that used to be the separate ŞL Sonuçlar tab. */
 function liveView(ms,wks){
+  const [comp,sw]=compSwitch("liveComp");
+  if(comp==="ucl")return h("div",{style:"display:flex;flex-direction:column;gap:12px"},sw,uclResultsView());
   const list=ms.filter(m=>m.week===S.week);
   const t=pickTable(list,S.week+". hafta puanı");
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    sw,
     weekNav(wks,list),
     t.el,
     h("p",{class:"small muted",style:"margin:0"},"Haftanın ilk maçı başlayınca o haftanın bütün tahminleri kilitlenir ve burada görünür. "+(t.anyProv?"Çerçeveli puanlar geçicidir: canlı skora göre hesaplanır ve maç bitene kadar değişebilir. ":"")+"Hangi kategorilerin tuttuğunu görmek için puanın üzerine gel."))
@@ -543,13 +563,14 @@ function pickTable(list,footLabel){
   const rows=list.map(m=>{
     const st=started(m),lk=locked(m),pts=matchPoints(m)||{};
     if(scored(m))ps.forEach(p=>{const x=pts[p.id];if(x){isFinal(m)?totals[p.id].fin+=x.total:totals[p.id].prov+=x.total}});
-    const stTxt=scored(m)?(isLive(m)?(m.clock||"Canlı"):"MS"):m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):st?"Başladı":fmtTime.format(new Date(m.kickoff));
+    // A Champions League matchday spans two days, so its kickoff shows the day too ("24 Kas 20:45").
+    const stTxt=scored(m)?(isLive(m)?(m.clock||"Canlı"):"MS"):m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):st?"Başladı":(isUcl(m)?fmtShort:fmtTime).format(new Date(m.kickoff));
     const sc=scored(m)?h("td",{class:"sc c"+(isLive(m)?" live":"")},m.hs+" – "+m.as,h("small",{},stTxt)):h("td",{class:"sc c"},h("small",{},stTxt));
     // On small phones the score column is hidden and each team's goals sit next to its name instead.
     const goals=g=>scored(m)?h("i",{class:"g"},String(g)):null;
     return h("tr",{class:hasTR(m)?"trrow":null},
       h("td",{class:"fx l"+(isLive(m)?" live":"")},h("b",{},h("span",{},h("span",{text:m.home}),goals(m.hs)),h("span",{class:"vs"}," – "),h("span",{},h("span",{text:m.away}),goals(m.as))),
-        h("small",{class:"fxst"},stTxt),h("div",{},isUcl(m)?fmtTime.format(new Date(m.kickoff)):fmtDate.format(new Date(m.kickoff)))),
+        h("small",{class:"fxst"},stTxt),h("div",{},fmtDate.format(new Date(m.kickoff)))),
       sc,
       ps.map(p=>{const x=(S.picks[p.id]||{})[m.id],cls="pk c"+(p.id===S.me?" mine":"");
         if(!lk){const inn=x||S.submitted.has(p.id+"|"+m.id);
@@ -609,6 +630,8 @@ function standingsView(ms){
    best single match, prediction style, strongest category, favourite score, luckiest team and how
    often they score points. Only finished (locked) matches are used, so nothing hidden is revealed. */
 function insightsView(){
+  // Only the signed-in player sees an analysis, and only their own (group averages still use everyone).
+  if(!S.me||!playerById(S.me))return null;
   const fin=[...S.matches,...S.ucl.filter(canPredict)].filter(isFinal);
   const data=S.players.map(p=>{const rows=[];
     for(const m of fin){const x=(S.picks[p.id]||{})[m.id];if(!x)continue;
@@ -650,9 +673,10 @@ function insightsView(){
         row("Favori skor",fav[0],`${fav[1]} kez tahmin etti`),
         lucky&&lucky[1]>0?row("Şanslı takımı",lucky[0],`maçlarından ${fmtPts(lucky[1])} puan`):null,
         row("Puan aldığı maç",pct(scoredN/n),`${n} maçın ${scoredN} tanesinde`)))};
-  return h("section",{class:"panel"},h("h2",{},"Oyuncu analizleri"),
-    h("div",{class:"ins"},data.map(card)),
-    h("p",{class:"small muted",style:"margin:0"},`Tahmin yapılmış ve sonuçlanmış ${new Set(data.flatMap(d=>d.rows.map(o=>o.m.id))).size} maçtan (Süper Lig ve Şampiyonlar Ligi). Güçlü yanı: oyuncunun grup ortalamasının en çok üstünde olduğu kategori (en az 5 maç). Maç sayısı arttıkça analizler daha anlamlı hale gelir.`))}
+  const mine=data.find(d=>d.p.id===S.me);
+  return h("section",{class:"panel"},h("h2",{},"Senin analizin"),
+    h("div",{class:"ins one"},card(mine)),
+    h("p",{class:"small muted",style:"margin:0"},`Sonuçlanmış ${mine.rows.length} tahmininden (Süper Lig ve Şampiyonlar Ligi). Bu analizi yalnızca sen görüyorsun. Güçlü yanı: grup ortalamasının en çok üstünde olduğun kategori (en az 5 maç). Maç sayısı arttıkça analiz daha anlamlı hale gelir.`))}
 /* Every two-week period from week 12 to the current one, newest first. Each period has a row for
    its first week, its second week and their total; the period winner is marked on the total. */
 function periodsView(B){
@@ -716,6 +740,23 @@ function quickIn(id,val,label,onv){
       if(el.value.length===1)focusNext(el)}})}
 function focusNext(el){const all=[...document.querySelectorAll("input.qbox")],i=all.indexOf(el);
   if(i>=0&&i<all.length-1){all[i+1].focus()}else{el.blur();const b=document.getElementById("save");b&&b.scrollIntoView({block:"nearest"})}}
+/* A match on a locked Champions League day: the score (live in red) and, for the signed-in player,
+   only their own prediction, category hits and points. Everyone's picks are in Canlı Tablo. */
+function lockedRow(m){
+  const me=S.me,mine=myPick(m),sc=scored(m),live=isLive(m);
+  const box=v=>h("span",{class:"qbox"+(sc?(live?" live":""):" ghost")},sc?String(v):nil());
+  const status=live?h("span",{class:"st live"},"Canlı"+(m.clock?" · "+m.clock:"")):isFinal(m)?h("span",{class:"st"},"MS"):
+    m.state==="post"?h("span",{class:"st"},/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):started(m)?h("span",{class:"st"},"Başladı"):null;
+  const sub=[status];
+  if(me){
+    if(!mine)sub.push(h("span",{},"Tahmin yapmadın"));
+    else{sub.push(h("span",{},"Tahminin "+mine.h+"–"+mine.a));
+      if(sc){const r=(matchPoints(m)||{})[me];
+        poolsFor(m).forEach(([k,l])=>sub.push(h("span",{class:"tag"+(r&&r.hit[k]?" hit":""),title:l},SHORT[k])));
+        sub.push(h("span",{class:"pts"+(live?" prov":"")+(r&&r.total===0?" zero":"")},"+"+fmtPts(r?r.total:0)))}}}
+  return h("div",{class:"qrow lockedrow"+(hasTR(m)?" tr":"")+(me&&mine?" mine":"")},
+    h("span",{class:"qh",text:m.home}),h("div",{class:"qscore"},box(m.hs),h("span",{class:"sep"},":"),box(m.as)),h("span",{class:"qa",text:m.away}),h("span",{}),
+    sub.some(Boolean)?h("div",{class:"qsub"},sub.filter(Boolean)):null)}
 /* A day's header: date, lock state and how many of my picks are in. */
 function dayHead(day,list){
   const lockT=Math.min(...list.map(kick)),isLocked=groupLocked(list[0]);
@@ -737,69 +778,69 @@ function uclView(){
   const n=dirtyCount();
   const sections=days.map(dl=>{
     const isLocked=groupLocked(dl[0]);
+    const rows=row=>dl.flatMap((m,i)=>{const t=fmtTime.format(new Date(m.kickoff));
+      return i===0||t!==fmtTime.format(new Date(dl[i-1].kickoff))?[h("div",{class:"qtime"},t),row(m)]:[row(m)]});
+    // Locked day: only the signed-in player's own predictions (everyone's are in Canlı Tablo).
+    let dayPts=0;if(isLocked&&S.me)dl.forEach(m=>{const r=(matchPoints(m)||{})[S.me];if(r)dayPts+=r.total});
     return h("section",{class:"day"},dayHead(dayOf(dl[0]),dl),
-      isLocked?pickTable(dl,"Günün puanı").el:
-        h("div",{class:"list qlist"},dl.flatMap((m,i)=>{const t=fmtTime.format(new Date(m.kickoff));
-            return i===0||t!==fmtTime.format(new Date(dl[i-1].kickoff))?[h("div",{class:"qtime"},t),quickRow(m)]:[quickRow(m)]}),
-          h("div",{class:"qfoot small muted"},S.me?"Bir rakam yazınca sonraki kutuya geçer. Tahminler "+fmtTime.format(new Date(Math.min(...dl.map(kick))))+"'de, günün ilk maçıyla kilitlenir ve herkesinki görünür.":
+      isLocked?h("div",{class:"list qlist"},rows(lockedRow),
+          h("div",{class:"qfoot small muted"},S.me?[dl.some(scored)?h("b",{style:"color:var(--ink)"},`Günün puanın: ${fmtPts(dayPts)} · `):null,"Herkesin tahminleri Canlı Tablo › Şampiyonlar Ligi'nde."]:
+            "Tahminini görmek için giriş yap. Herkesin tahminleri Canlı Tablo › Şampiyonlar Ligi'nde.")):
+        h("div",{class:"list qlist"},rows(quickRow),
+          h("div",{class:"qfoot small muted"},S.me?"Bir rakam yazınca sonraki kutuya geçer. Tahminler "+fmtTime.format(new Date(Math.min(...dl.map(kick))))+"'de, günün ilk maçıyla kilitlenir; herkesinki Canlı Tablo'da görünür.":
             `Tahmin girenler: ${S.players.filter(p=>dl.some(m=>S.submitted.has(p.id+"|"+m.id))).map(p=>p.short).join(", ")||"henüz kimse"}`)))});
   return h("div",{class:"ucl",style:"display:flex;flex-direction:column;gap:14px"},
     weekNav(wks,list,"uclWeek",uclTitle),
     sections,
     S.me&&anyOpen?h("div",{class:"savebar sticky"},
       h("span",{id:"dirtyn",class:"small"},n?`${n} maçta kaydedilmemiş değişiklik var`:"Tüm tahminlerin kayıtlı"),
-      h("button",{id:"save",class:"btn primary",disabled:!n||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":n?`Kaydet (${n})`:"Kaydedildi ✓")):null,
-    uclTableView())}
-/* ŞL Sonuçlar: each locked match with the result and every player's pick, hits and points. */
-function resultCard(m){
-  const pts=matchPoints(m)||{},pools=poolsFor(m),sc=scored(m);
-  const status=isLive(m)?"Canlı · "+(m.clock||""):isFinal(m)?"Maç sonu":m.state==="post"?(/postp/i.test(m.detail||"")?"Ertelendi":"Oynanmadı"):started(m)?"Başladı":fmtTime.format(new Date(m.kickoff));
-  const best=Math.max(0,...S.players.map(p=>(pts[p.id]||{}).total||0));
-  return h("div",{class:"rcard"+(hasTR(m)?" tr":"")},
-    h("div",{class:"rc-head"},h("span",{class:"rc-h",text:m.home}),
-      h("span",{class:"rc-sc"+(isLive(m)?" live":"")},sc?m.hs+" – "+m.as:"– : –"),
-      h("span",{class:"rc-a",text:m.away})),
-    h("div",{class:"rc-status"+(isLive(m)?" live":"")},status),
-    h("div",{class:"rc-rows"},S.players.map(p=>{const x=(S.picks[p.id]||{})[m.id],r=pts[p.id];
-      return h("div",{class:"rc-row"+(p.id===S.me?" mine":"")},
-        h("b",{text:p.short}),
-        h("span",{class:"rc-pick"},x?`${x.h}–${x.a}`:nil("muted")),
-        h("span",{class:"rc-tags"},sc&&x?pools.map(([k,l])=>h("span",{class:"tag"+(r&&r.hit[k]?" hit":""),title:l},SHORT[k])):!x?h("span",{class:"small muted"},"tahmin yok"):null),
-        r?h("span",{class:"pts"+(isLive(m)?" prov":"")+(r.total===0?" zero":"")+(r.total===best&&best>0?" top":"")},"+"+fmtPts(r.total)):h("span",{}))})))}
+      h("button",{id:"save",class:"btn primary",disabled:!n||S.saving,onclick:savePicks},S.saving?"Kaydediliyor…":n?`Kaydet (${n})`:"Kaydedildi ✓")):null)}
+/* Canlı Tablo › Şampiyonlar Ligi: the same matches × players table as the Süper Lig side, for the
+   whole matchday. Each day's picks stay hidden until that day's first kickoff. */
 function uclResultsView(){
   const ms=S.ucl;
   if(!ms.length)return h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Şampiyonlar Ligi verisi yok"),"Fikstür bir sonraki skor güncellemesinden sonra burada görünecek."));
   const wks=weeksOf(ms);if(!wks.includes(S.uclWeek))S.uclWeek=defaultWeek(ms);
   const list=ms.filter(m=>m.week===S.uclWeek);
-  const days=[...new Set(list.map(dayOf))].map(d=>list.filter(m=>dayOf(m)===d));
-  const tot={};S.players.forEach(p=>tot[p.id]=0);
-  list.forEach(m=>{const pts=matchPoints(m)||{};for(const pid in pts)if(pid in tot)tot[pid]+=pts[pid].total});
-  const ranked=S.players.map(p=>({p,v:tot[p.id]})).sort((a,b)=>b.v-a.v);
-  const anyScored=list.some(scored);
-  return h("div",{style:"display:flex;flex-direction:column;gap:14px"},
+  const t=pickTable(list,uclTitle(S.uclWeek)+" puanı");
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     weekNav(wks,list,"uclWeek",uclTitle),
-    anyScored?h("div",{class:"mdtotal"},h("span",{class:"small muted"},"Maç günü puanı"),
-      h("div",{class:"row"},ranked.map((r,i)=>h("span",{class:"pick"+(r.p.id===S.me?" mine":"")},h("b",{},`${i+1}. ${r.p.short}`),h("span",{class:"pts"+(r.v===0?" zero":"")},fmtPts(r.v)))))):null,
-    h("p",{class:"small muted",style:"margin:0"},POOLS.map(([k,l])=>SHORT[k]+" = "+l).join(" · ")+". Renkli etiket: o kategoriyi bildi."),
-    days.map(dl=>{const lockT=Math.min(...dl.map(kick)),open=!groupLocked(dl[0]);
-      return h("section",{class:"day"},
-        h("div",{class:"dayhead"},h("b",{text:fmtDay.format(new Date(dl[0].kickoff))}),
-          open?h("span",{class:"state open"},"Tahminler "+fmtTime.format(new Date(lockT))+"'de açıklanır"):dl.some(isLive)?h("span",{class:"state live"},"Canlı"):dl.every(m=>m.state==="post")?h("span",{class:"state ft"},"Bitti"):h("span",{class:"state lock"},"Kilitli")),
-        open?h("div",{class:"list"},h("div",{class:"qfoot small muted",style:"border-top:0"},
-            `${dl.length} maç. Tahmin girenler: ${S.players.filter(p=>dl.some(m=>S.submitted.has(p.id+"|"+m.id)||(p.id===S.me&&myPick(m)))).map(p=>p.short).join(", ")||"henüz kimse"}. Herkesin tahmini günün ilk maçı başlayınca burada görünür.`)):
-          h("div",{class:"rcards"},dl.map(resultCard)))}))}
+    t.el,
+    h("p",{class:"small muted",style:"margin:0"},"Her günün tahminleri o günün ilk maçı başlayınca kilitlenir ve burada görünür. "+(t.anyProv?"Çerçeveli puanlar geçicidir: canlı skora göre hesaplanır ve maç bitene kadar değişebilir. ":"")+"Hangi kategorilerin tuttuğunu görmek için puanın üzerine gel."))
+}
+/* Liglerin Puan Tablosu: a switch between the Süper Lig table and the Champions League table;
+   only the selected one is shown. The choice is remembered on this device. */
+/* Süper Lig / Şampiyonlar Ligi sliding toggle, used by Canlı tablo and Liglerin Puan Tablosu.
+   key: the state (and remembered-on-this-device) name, e.g. "leagueComp". Returns [choice, element]. */
+function compSwitch(key){
+  const comp=S[key]||(S[key]=lsGet(key)==="ucl"?"ucl":"tsl");
+  // Slide the knob on the existing switch first, then redraw with the other view once it has moved.
+  const pick=(c,e)=>{if(c===S[key])return;S[key]=c;lsSet(key,c);
+    const sw=e.currentTarget.parentElement;sw.classList.toggle("r",c==="ucl");
+    sw.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b===e.currentTarget)));
+    setTimeout(render,matchMedia("(prefers-reduced-motion: reduce)").matches?0:200)};
+  const btn=(c,label)=>h("button",{"aria-pressed":String(comp===c),onclick:e=>pick(c,e)},label);
+  return [comp,h("div",{class:"seg"+(comp==="ucl"?" r":""),role:"group","aria-label":"Lig seçimi"},h("span",{class:"knob","aria-hidden":"true"}),btn("tsl","Süper Lig"),btn("ucl","Şampiyonlar Ligi"))];
+}
+function leagueView(ms){
+  const [comp,sw]=compSwitch("leagueComp");
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
+    sw,
+    comp==="ucl"?(uclTableView()||h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Puan durumu henüz yok"),"Şampiyonlar Ligi tablosu bir sonraki skor güncellemesinden sonra burada görünecek."))):tslTableView(ms))}
 function uclTableView(){
   const t=S.uclTable;if(!t.length)return null;
   const zone=r=>r.rank<=8?"z1":r.rank<=24?"z2":"z3";
   const sgn=v=>v>0?"+"+v:String(v);
-  return h("div",{style:"display:flex;flex-direction:column;gap:8px"},
-    h("h3",{class:"sub"},"Lig aşaması puan durumu"),
+  // Same columns as the Süper Lig table: O G B M (A Y on wide screens) AV P.
+  return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     h("div",{class:"tablewrap"},h("table",{class:"league ucltable"},
-      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Takım"),h("th",{title:"Oynanan"},"O"),h("th",{class:"opt",title:"Galibiyet"},"G"),h("th",{class:"opt",title:"Beraberlik"},"B"),h("th",{class:"opt",title:"Mağlubiyet"},"M"),
-        h("th",{class:"opt",title:"Atılan gol"},"A"),h("th",{class:"opt",title:"Yenilen gol"},"Y"),h("th",{title:"Averaj"},"AV"),h("th",{},"P"))),
+      h("thead",{},h("tr",{},h("th",{class:"l rk"},"#"),h("th",{class:"l"},"Takım"),
+        h("th",{class:"n",title:"Oynanan"},"O"),h("th",{class:"n",title:"Galibiyet"},"G"),h("th",{class:"n",title:"Beraberlik"},"B"),h("th",{class:"n",title:"Mağlubiyet"},"M"),
+        h("th",{class:"opt n",title:"Atılan gol"},"A"),h("th",{class:"opt n",title:"Yenilen gol"},"Y"),h("th",{class:"av",title:"Averaj"},"AV"),h("th",{class:"pt"},"P"))),
       h("tbody",{},t.map(r=>h("tr",{class:zone(r)+(r.tr?" tr":"")},
-        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.team}),h("td",{},r.o),
-        h("td",{class:"opt"},r.g),h("td",{class:"opt"},r.b),h("td",{class:"opt"},r.m),h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),
+        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.team}),
+        h("td",{},r.o),h("td",{},r.g),h("td",{},r.b),h("td",{},r.m),
+        h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),
         h("td",{},sgn(r.av)),h("td",{class:"total"},r.p)))))),
     h("p",{class:"small muted",style:"margin:0"},h("span",{class:"key z1"},"1–8"),"son 16'ya doğrudan · ",h("span",{class:"key z2"},"9–24"),"play-off · ",h("span",{class:"key z3"},"25–36"),"elenir. Türk takımları vurgulanır. Sıralama UEFA'nın resmi tablosudur (ESPN)."))}
 
@@ -818,7 +859,7 @@ function tieOrder(group,fin){
     if(s>0)hh[m.home].p+=3;else if(s<0)hh[m.away].p+=3;else{hh[m.home].p++;hh[m.away].p++}}
   group.forEach(r=>r.h2h=complete);
   return group.sort((x,y)=>hh[y.team].p-hh[x.team].p||hh[y.team].av-hh[x.team].av||y.av-x.av||y.a-x.a||x.team.localeCompare(y.team,"tr"))}
-function leagueView(ms){
+function tslTableView(ms){
   const T={};
   const row=n=>T[n]||(T[n]={team:n,o:0,g:0,b:0,m:0,a:0,y:0,form:[]});
   ms.forEach(m=>{row(m.home);row(m.away)});
@@ -836,15 +877,17 @@ function leagueView(ms){
   const sgn=v=>v>0?"+"+v:String(v);
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     h("div",{class:"tablewrap"},h("table",{class:"league"},
-      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Takım"),
-        h("th",{title:"Oynanan"},"O"),h("th",{title:"Galibiyet"},"G"),h("th",{title:"Beraberlik"},"B"),h("th",{title:"Mağlubiyet"},"M"),
-        h("th",{class:"opt",title:"Atılan gol"},"A"),h("th",{class:"opt",title:"Yenilen gol"},"Y"),h("th",{title:"Averaj"},"AV"),
-        h("th",{class:"opt l",title:"Son 5 maç"},"Form"),h("th",{},"P"))),
+      // Form sits right after the team name, so the number columns (O … P) line up with the
+      // Champions League table, which has no form column.
+      h("thead",{},h("tr",{},h("th",{class:"l rk"},"#"),h("th",{class:"l"},"Takım"),h("th",{class:"opt l fm",title:"Son 5 maç"},"Form"),
+        h("th",{class:"n",title:"Oynanan"},"O"),h("th",{class:"n",title:"Galibiyet"},"G"),h("th",{class:"n",title:"Beraberlik"},"B"),h("th",{class:"n",title:"Mağlubiyet"},"M"),
+        h("th",{class:"opt n",title:"Atılan gol"},"A"),h("th",{class:"opt n",title:"Yenilen gol"},"Y"),h("th",{class:"av",title:"Averaj"},"AV"),
+        h("th",{class:"pt"},"P"))),
       h("tbody",{},rows.map((r,i)=>h("tr",{class:i===0&&r.o?"zone":null},
         h("td",{class:"rank"},i+1),h("td",{class:"name l",text:r.team,title:r.h2h?"Puan eşitliği ikili averajla ayrıldı":null}),
+        h("td",{class:"opt l"},h("span",{class:"small muted"},r.form.slice(-5).join(" ")||"–")),
         h("td",{},r.o),h("td",{},r.g),h("td",{},r.b),h("td",{},r.m),
         h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),h("td",{},sgn(r.av)),
-        h("td",{class:"opt l"},h("span",{class:"small muted"},r.form.slice(-5).join(" ")||"–")),
         h("td",{class:"total"},r.p)))))),
     h("p",{class:"small muted",style:"margin:0"},`${n} takım · ${played} maç tamamlandı. Tablo biten maçların skorlarından hesaplanır; canlı maçlar bitince eklenir. Puan eşitliğinde, takımlar birbiriyle iç sahada ve deplasmanda oynamışsa önce aralarındaki maçların puanına, sonra ikili averaja bakılır; oynamamışlarsa ya da hâlâ eşitlerse genel averaj, sonra atılan gol. Varsa puan silme cezaları tabloya yansımaz.`))
 }
@@ -885,8 +928,10 @@ window.addEventListener("online",()=>refresh());
 /* Warn before leaving with unsaved predictions. */
 window.addEventListener("beforeunload",e=>{if(S.me&&dirtyCount()){e.preventDefault();e.returnValue=""}});
 
-S.tab=(location.hash||"").slice(1);if(!TABS.some(([k])=>k===S.tab))S.tab="predict";
-window.addEventListener("hashchange",()=>{const t=location.hash.slice(1);if(TABS.some(([k])=>k===t)){S.tab=t;render()}});
+/* Old links to the former ŞL Sonuçlar tab (#uclres) open Canlı tablo on the Champions League side. */
+const openHash=t=>{if(t==="uclres"){S.liveComp="ucl";t="live";history.replaceState(null,"","#live")}return TABS.some(([k])=>k===t)?t:null};
+S.tab=openHash((location.hash||"").slice(1))||"predict";
+window.addEventListener("hashchange",()=>{const t=openHash(location.hash.slice(1));if(t){S.tab=t;render()}});
 // Show the last saved data immediately, then fetch fresh data.
 try{const c=JSON.parse(lsGet("state")||"null");if(c&&c.matches)applyState(c,true)}catch(e){}
 render();

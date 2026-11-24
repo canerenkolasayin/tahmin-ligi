@@ -12,7 +12,10 @@ A Süper Lig 2026–27 score-prediction league for four friends.
 - **Live scores:** `live-sync.sql` sets up Supabase Cron to call ESPN every 30 seconds while a match
   is on and update scores in the database. GitHub's schedule is too unreliable for live scores, so the
   GitHub sync is only used for fixtures and week numbers.
-- **Champions League:** the "Şampiyonlar Ligi" tab shows every match and the league-phase table.
+- **Champions League:** the "Şampiyonlar Ligi Tahmin" tab shows every match. "Canlı tablo" and
+  "Liglerin Puan Tablosu" each have a Süper Lig / Şampiyonlar Ligi toggle: Canlı tablo shows everyone's
+  picks and points in the same table for both (a Süper Lig week or a Champions League matchday), and
+  Liglerin Puan Tablosu the league tables.
   Every match is predicted; they score like Süper Lig matches and count in the main Puan Tablosu.
   Each day (Istanbul date) locks at that day's first kickoff. Turkish teams' matches are highlighted.
 
