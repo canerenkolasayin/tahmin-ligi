@@ -3,8 +3,10 @@
 A Süper Lig 2026–27 score-prediction league for four friends.
 
 - **Page:** `index.html`, served by GitHub Pages from the repository root. Players pick their name and enter a 4-digit PIN.
-- **Data:** Supabase. `schema.sql` creates the tables and the three functions the page calls
-  (`get_state`, `login`, `save_picks`). PINs are checked in the database. A week locks at its first kickoff:
+  A signed-in player can choose a new PIN with "PIN'i değiştir" next to their name (current PIN, then the new one
+  twice). A forgotten PIN can only be reset in Supabase.
+- **Data:** Supabase. `schema.sql` creates the tables and the four functions the page calls
+  (`get_state`, `login`, `save_picks`, `change_pin`). PINs are checked in the database. A week locks at its first kickoff:
   no prediction for that week can be changed after that, and only then are other players' predictions returned.
 - **Scores:** `.github/workflows/sync.yml` runs `sync.mjs` every 10 minutes (09:00–22:59 UTC).
   It reads ESPN's public Süper Lig and Champions League scoreboards (plus the Champions League table)

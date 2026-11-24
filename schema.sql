@@ -4,7 +4,7 @@
 -- Security model:
 --   * Every table has row-level security on and no grants to the public (anon) role,
 --     so the web page cannot read or write any table directly.
---   * The page only calls three functions: get_state, login and save_picks.
+--   * The page only calls four functions: get_state, login, save_picks and change_pin.
 --   * PINs are stored as bcrypt hashes and checked inside the database.
 --   * A week locks when its first match kicks off: from then on no prediction for any
 --     match of that week can be saved, and everyone's predictions for it are returned.
@@ -231,6 +231,30 @@ begin
 end
 $$;
 
+-- Lets a player replace their own PIN. The current PIN is checked like a login (same
+-- wrong-attempt limit); the new one must be exactly 4 digits and different from the old one.
+create or replace function public.change_pin(p_player text, p_pin text, p_new text)
+returns json
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $$
+begin
+  if coalesce(p_new, '') !~ '^[0-9]{4}$' then
+    return json_build_object('ok', false, 'error', 'bad_new');
+  end if;
+  if not _verify_pin(p_player, p_pin) then
+    return json_build_object('ok', false, 'error', 'bad_pin');
+  end if;
+  if p_new = p_pin then
+    return json_build_object('ok', false, 'error', 'same');
+  end if;
+  update players set pin_hash = crypt(p_new, gen_salt('bf')) where id = p_player;
+  return json_build_object('ok', true);
+end
+$$;
+
 -- The one-argument lock check from before Champions League support is no longer used.
 drop function if exists public._week_locked(int);
 
@@ -240,3 +264,5 @@ revoke all on function public.save_picks(text, text, jsonb) from public;
 grant execute on function public.get_state() to anon, authenticated;
 grant execute on function public.login(text, text) to anon, authenticated;
 grant execute on function public.save_picks(text, text, jsonb) to anon, authenticated;
+revoke all on function public.change_pin(text, text, text) from public;
+grant execute on function public.change_pin(text, text, text) to anon, authenticated;

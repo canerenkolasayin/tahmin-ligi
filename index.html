@@ -46,7 +46,9 @@ button{cursor:pointer}
 .brand h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:.01em;margin:0;text-transform:capitalize}
 .brand h1 span{color:var(--accent)}
 .brand p{margin:4px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:capitalize}
-.me{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.me{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;color:var(--muted)}
+.pcrow{align-items:flex-end;gap:10px}
+.pcf{display:flex;flex-direction:column;gap:3px}
 .me b{color:var(--ink);font-weight:600}
 .link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .banner{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--muted)}
@@ -415,6 +417,7 @@ function render(){
     S.slow&&!S.loaded?h("div",{class:"banner"},"Hâlâ bağlanıyor. İnternet bağlantını kontrol et."):null,
     S.error?h("div",{class:"banner"},S.loaded?"Sunucuya ulaşılamıyor. Gösterilen skorlar güncel olmayabilir; tekrar deneniyor.":"Veriler yüklenemedi. Tekrar deneniyor."):null,
     !S.me&&loadedAll()&&(S.tab==="predict"||S.tab==="ucl")?loginPanel():null,
+    S.me&&S.pc?pinPanel():null,
     h("div",{class:"tabs",role:"tablist"},TABS.map(([k,l])=>
       h("button",{class:"tab",role:"tab","aria-selected":String(S.tab===k),onclick:()=>go(k)},(k==="live"&&(anyLive||uclLive))||(k==="ucl"&&uclLive)?h("span",{class:"dot","aria-label":"Şu an canlı maç var"}):null,l))),
     !loadedAll()?h("div",{class:"list"},h("div",{class:"empty"},h("strong",{},"Yükleniyor"),"Fikstür ve tahminler getiriliyor.")):
@@ -431,7 +434,9 @@ function header(){
   return h("div",{class:"top"},
     h("div",{class:"brand"},h("h1",{},"Tahmin ",h("span",{},"Ligi")),
       h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
-    p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),h("button",{class:"link",onclick:signOut},"çıkış yap")):
+    p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),
+      h("button",{class:"link","aria-expanded":String(!!S.pc),onclick:()=>{S.pc=S.pc?null:{old:"",n1:"",n2:"",err:""};render();if(S.pc)setTimeout(()=>{const el=document.getElementById("pcOld");el&&el.focus()},0)}},"PIN'i değiştir"),
+      h("button",{class:"link",onclick:signOut},"çıkış yap")):
       loadedAll()&&S.tab!=="predict"&&S.tab!=="ucl"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
 }
 
@@ -447,6 +452,33 @@ function loginPanel(){
       h("span",{class:"small muted"},p.short+" için 4 haneli PIN'i gir")):h("p",{class:"small muted",style:"margin:0"},"Adını seç, sonra PIN'ini gir. Canlı tabloya ve puan tablolarına giriş yapmadan da bakabilirsin."),
     S.pinErr?h("div",{class:"err",role:"alert"},S.pinErr):null)
 }
+/* Change PIN: current PIN, new PIN twice. Values live in S.pc so a re-render keeps them. */
+function pinPanel(){
+  const pc=S.pc,f=(id,k,label)=>h("label",{class:"pcf"},h("span",{class:"small muted"},label),
+    h("input",{id,class:"field pin",type:"password",inputmode:"numeric",maxlength:"4",autocomplete:"off",value:pc[k],
+      oninput:e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,4);pc[k]=e.target.value},
+      onkeydown:e=>{if(e.key==="Enter")changePin()}}));
+  return h("section",{class:"panel"},
+    h("h2",{},"PIN'i değiştir"),
+    h("div",{class:"row pcrow"},f("pcOld","old","Şu anki PIN"),f("pcNew","n1","Yeni PIN"),f("pcNew2","n2","Yeni PIN (tekrar)")),
+    h("div",{class:"row"},h("button",{class:"btn primary",disabled:S.busy,onclick:changePin},"Kaydet"),
+      h("button",{class:"btn",onclick:()=>{S.pc=null;render()}},"Vazgeç")),
+    h("p",{class:"small muted",style:"margin:0"},"Yeni PIN 4 rakam olmalı. Unutursan sadece Can Eren sıfırlayabilir."),
+    pc.err?h("div",{class:"err",role:"alert"},pc.err):null)
+}
+async function changePin(){
+  const pc=S.pc,me=S.me;if(!pc||!me||S.busy)return;
+  const fail=m=>{pc.err=m;render()};
+  if(!/^\d{4}$/.test(pc.old))return fail("Şu anki PIN'i gir.");
+  if(!/^\d{4}$/.test(pc.n1))return fail("Yeni PIN 4 rakam olmalı.");
+  if(pc.n1!==pc.n2)return fail("Yeni PIN'ler aynı değil.");
+  if(pc.n1===pc.old)return fail("Yeni PIN eskisiyle aynı.");
+  S.busy=true;pc.err="";render();
+  try{const r=await rpc("change_pin",{p_player:me,p_pin:pc.old,p_new:pc.n1});S.busy=false;
+    if(!r||!r.ok){pc.old="";return fail(r&&r.error==="bad_pin"?"Şu anki PIN yanlış.":r&&r.error==="same"?"Yeni PIN eskisiyle aynı.":"PIN değiştirilemedi.")}
+    S.pin=pc.n1;lsSet("session",JSON.stringify({pid:me,pin:pc.n1}));S.pc=null;
+    toast("PIN değişti. Diğer cihazlarda yeni PIN'le tekrar giriş yap.")}
+  catch(e){S.busy=false;fail(isLocked(e)?"Çok fazla hatalı deneme. 15 dakika sonra tekrar dene.":"Sunucuya ulaşılamadı. Tekrar dene.")}}
 async function tryLogin(pin){
   const p=playerById(S.loginFor);if(!p)return;
   if(!/^\d{4}$/.test(pin)){S.pinErr="PIN 4 haneli olmalı.";render();return}
