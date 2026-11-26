@@ -19,13 +19,18 @@ self.addEventListener("activate", e => {
 self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Tahmin Ligi", {
+  // d.badge: number of unpredicted matches, shown on the home-screen icon (the app updates it
+  // again whenever it is opened).
+  const setBadge = typeof d.badge === "number" && self.navigator.setAppBadge
+    ? self.navigator.setAppBadge(d.badge).catch(() => {}) : Promise.resolve();
+  e.waitUntil(Promise.all([setBadge, self.registration.showNotification(d.title || "Tahmin Ligi", {
     body: d.body || "",
     tag: d.tag || undefined,
     icon: "icons/icon-192.png",
     badge: "icons/icon-192.png",
+    // url like "#predict/14" or "#ucl/5": opens that tab on that week / matchday.
     data: { url: new URL(d.url || "./", self.registration.scope).href },
-  }));
+  })]));
 });
 
 // Tapping the notification opens the app on the right tab.

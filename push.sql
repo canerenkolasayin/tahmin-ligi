@@ -41,6 +41,7 @@ create table if not exists public.push_outbox (
   tag         text not null default 'test',
   created_at  timestamptz not null default now()
 );
+alter table public.push_outbox add column if not exists badge int;  -- number on the app icon
 
 alter table public.push_subs enable row level security;
 alter table public.push_sent enable row level security;
@@ -125,6 +126,17 @@ as $$
 $$;
 revoke all on function public._push_due() from public, anon, authenticated;
 
+-- How long until a lock, in words: "2 saat", "1,5 saat", "1 saat" or "25 dakika".
+create or replace function public._push_in(p_at timestamptz)
+returns text
+language sql
+stable
+as $$
+  select case when m >= 100 then '2 saat' when m >= 80 then '1,5 saat' when m >= 50 then '1 saat'
+              else greatest(5, (round(m / 5) * 5)::int) || ' dakika' end
+    from (select extract(epoch from p_at - now()) / 60 as m) x;
+$$;
+
 -- Called by the Edge Function: marks the due reminders as sent and returns one message per phone,
 -- plus any one-off messages from push_outbox (which are removed as they are handed out).
 -- Marking first means a reminder is never sent twice, even if two runs overlap.
@@ -143,20 +155,22 @@ as $$
     on conflict do nothing
     returning player_id, gkey
   ), outbox as (
-    delete from push_outbox returning *
+    delete from push_outbox where true returning *  -- Supabase's API refuses a DELETE without WHERE
   ), msgs as (
     select json_build_object('endpoint', o.endpoint, 'p256dh', o.p256dh, 'auth', o.auth,
-             'tag', o.tag, 'url', o.url, 'title', o.title, 'body', o.body) as m
+             'tag', o.tag, 'url', o.url, 'title', o.title, 'body', o.body, 'badge', o.badge) as m
       from outbox o
     union all
+    -- "Tahmin zamanı / 14. hafta 2 saat sonra kilitleniyor, 3 maçın eksik."
+    -- url opens the right tab and week; badge is the number shown on the app icon.
     select json_build_object(
            'endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth,
            'tag', d.gkey,
-           'url', case when d.comp = 'ucl' then '#ucl' else '#predict' end,
-           'title', case when d.comp = 'ucl' then 'Şampiyonlar Ligi tahminleri'
-                         else d.week || '. hafta tahminleri' end,
-           'body', d.missing || ' maçı henüz tahmin etmedin. Kilit saati '
-                   || to_char(d.lock_at at time zone 'Europe/Istanbul', 'HH24:MI') || ' (ilk maç).')
+           'url', case when d.comp = 'ucl' then '#ucl/' else '#predict/' end || d.week,
+           'badge', d.missing,
+           'title', 'Tahmin zamanı',
+           'body', case when d.comp = 'ucl' then 'Bugünkü Şampiyonlar Ligi maçları ' else d.week || '. hafta ' end
+                   || _push_in(d.lock_at) || ' sonra kilitleniyor, ' || d.missing || ' maçın eksik.')
       from due d
       join ins i on i.player_id = d.player_id and i.gkey = d.gkey
       join push_subs s on s.player_id = d.player_id
@@ -172,11 +186,13 @@ language plpgsql
 security definer
 set search_path = public, extensions
 as $$
-declare n int;
+declare n int; w int;
 begin
-  insert into push_outbox (endpoint, p256dh, auth, title, body, url, tag)
-  select endpoint, p256dh, auth, 'Deneme · 14. hafta tahminleri',
-         '3 maçı henüz tahmin etmedin. Kilit saati 20:00 (ilk maç).', '#predict', 'test'
+  -- The next Süper Lig week, so the tap opens a real week.
+  select coalesce(min(week), 1) into w from matches where comp = 'tsl' and kickoff > now();
+  insert into push_outbox (endpoint, p256dh, auth, title, body, url, tag, badge)
+  select endpoint, p256dh, auth, 'Tahmin zamanı',
+         'Deneme: ' || w || '. hafta 2 saat sonra kilitleniyor, 3 maçın eksik.', '#predict/' || w, 'test', 3
     from push_subs where player_id = p_player;
   get diagnostics n = row_count;
   if n > 0 then perform push_tick(); end if;
@@ -223,6 +239,7 @@ revoke all on function public.push_claim() from public, anon, authenticated;
 revoke all on function public.push_gone(text[]) from public, anon, authenticated;
 revoke all on function public.push_tick() from public, anon, authenticated;
 revoke all on function public.push_send_test(text) from public, anon, authenticated;
+revoke all on function public._push_in(timestamptz) from public, anon, authenticated;
 grant execute on function public.push_subscribe(text, text, text, text, text) to anon, authenticated;
 grant execute on function public.push_unsubscribe(text) to anon, authenticated;
 grant execute on function public.push_claim() to service_role;

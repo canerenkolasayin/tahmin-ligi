@@ -22,7 +22,9 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-type Msg = { endpoint: string; p256dh: string; auth: string; title: string; body: string; url: string; tag: string };
+// endpoint/p256dh/auth address the phone; everything else (title, body, url, tag, badge, ...) is
+// passed to the phone as is, so new fields only need a database change.
+type Msg = { endpoint: string; p256dh: string; auth: string; [field: string]: unknown };
 
 Deno.serve(async () => {
   try {
@@ -34,10 +36,11 @@ Deno.serve(async () => {
     const gone: string[] = [];
     let sent = 0, failed = 0;
     await Promise.all(msgs.map(async (m) => {
+      const { endpoint, p256dh, auth, ...payload } = m;
       try {
         await webpush.sendNotification(
-          { endpoint: m.endpoint, keys: { p256dh: m.p256dh, auth: m.auth } },
-          JSON.stringify({ title: m.title, body: m.body, url: m.url, tag: m.tag }),
+          { endpoint, keys: { p256dh, auth } },
+          JSON.stringify(payload),
           { TTL: 2 * 60 * 60, urgency: "high" },
         );
         sent++;

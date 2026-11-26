@@ -427,6 +427,8 @@ function render(){
   const a=document.activeElement,fid=a&&a.id;let sel=null;
   try{if(fid&&a.selectionStart!=null)sel=[a.selectionStart,a.selectionEnd]}catch(e){}
   const ms=allMatches();
+  // A notification link's week is applied once that week's data is loaded.
+  if(S.jump&&weeksOf(S.jump.k==="uclWeek"?S.ucl:ms).includes(S.jump.w)){S[S.jump.k]=S.jump.w;S.jump=null}
   const wks=weeksOf(ms);if(!wks.includes(S.week))S.week=defaultWeek(ms);
   const anyLive=ms.some(isLive),uclLive=S.ucl.some(isLive);
   document.getElementById("app").replaceChildren(...[
@@ -442,7 +444,17 @@ function render(){
     S.tab==="live"?liveView(ms,wks):S.tab==="standings"?standingsView(ms):S.tab==="league"?leagueView(ms):S.tab==="ucl"?uclView():predictView(ms,wks),
     h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+  updateBadge();
 }
+/* Home-screen icon badge: how many open matches in the next 7 days you haven't predicted yet
+   (saved predictions only). Shown only while Maç Öncesi Bildirimler is on; cleared otherwise. */
+function updateBadge(){
+  if(!("setAppBadge" in navigator)||!S.loaded)return;
+  let n=0;
+  if(S.me&&S.push==="on"){const until=now()+7*864e5;
+    n=[...S.matches,...S.ucl].filter(m=>canPredict(m)&&!locked(m)&&kick(m)<until&&!myPick(m)).length}
+  if(n===updateBadge.last)return;updateBadge.last=n;
+  try{(n?navigator.setAppBadge(n):navigator.clearAppBadge()).catch(()=>{})}catch(e){}}
 function go(tab){S.tab=tab;if(location.hash!=="#"+tab)location.hash=tab;render()}
 
 function header(){
@@ -1057,9 +1069,13 @@ window.addEventListener("online",()=>refresh());
 window.addEventListener("beforeunload",e=>{if(S.me&&dirtyCount()){e.preventDefault();e.returnValue=""}});
 
 /* Old links to the former ŞL Sonuçlar tab (#uclres) open Canlı tablo on the Champions League side. */
-const openHash=t=>{if(t==="uclres"){S.liveComp="ucl";t="live";history.replaceState(null,"","#live")}return TABS.some(([k])=>k===t)?t:null};
+/* Notification links add a week: #predict/14 (Süper Lig week 14), #ucl/5 (Champions League matchday 5). */
+const openHash=raw=>{let [t,w]=raw.split("/");
+  if(t==="uclres"){S.liveComp="ucl";t="live";history.replaceState(null,"","#live")}
+  if(w!=null){if(/^\d+$/.test(w)&&(t==="predict"||t==="ucl"))S.jump={k:t==="ucl"?"uclWeek":"week",w:+w};history.replaceState(null,"","#"+t)}
+  return TABS.some(([k])=>k===t)?t:null};
 S.tab=openHash((location.hash||"").slice(1))||"predict";
-window.addEventListener("hashchange",()=>{const t=openHash(location.hash.slice(1));if(t){S.tab=t;render()}});
+window.addEventListener("hashchange",()=>{const t=openHash(location.hash.slice(1));if(t){S.tab=t;render();window.scrollTo(0,0)}});
 // Show the last saved data immediately, then fetch fresh data.
 try{const c=JSON.parse(lsGet("state")||"null");if(c&&c.matches)applyState(c,true)}catch(e){}
 render();
