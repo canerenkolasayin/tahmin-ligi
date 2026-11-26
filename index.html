@@ -21,12 +21,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: one narrow column like a matchday programme; scoreboard digit boxes are the signature element */
-/* Colours: Champions League night palette (deep navy, electric blue, cyan, gold).
+/* Colours: Champions League night palette (deep navy, electric blue, cyan; leaders get a cyan badge).
    One look for everyone: the same navy/cyan colours whether the phone is in light or dark mode. */
 :root{
   --bg:#000040; --surface:#0a0a55; --ink:#ffffff; --muted:#a9b0d6; --line:#22227a; --chip:#15156b;
   --accent:#00eeff; --accent-ink:#000040; --board:#ffffff; --board-ink:#000040;
-  --good:#00d9f7; --live:#ff4b55; --miss:#5c6396; --gold:#ffcd44; --glow:#0232ff;
+  --good:#00d9f7; --live:#ff4b55; --miss:#5c6396; --glow:#0232ff;
   /* Saira Condensed for everything (Google Fonts, has all Turkish letters). */
   --display:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Saira Condensed","Arial Narrow",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -42,17 +42,22 @@ button,a,input{touch-action:manipulation}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.belltop{position:absolute;top:0;right:0}
 .brand h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:.01em;margin:0;text-transform:capitalize}
 .brand h1 span{color:var(--accent)}
 .brand p{margin:4px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:capitalize}
 .me{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;color:var(--muted)}
 .pcrow{align-items:flex-end;gap:10px}
-.bell{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:3px 4px 3px 11px;font-size:13px;font-weight:600;color:var(--ink)}
-.bell .st{border-radius:999px;padding:1px 9px;background:var(--bg);color:var(--muted);font-size:12px}
-.bell.on .st{background:var(--accent);color:var(--accent-ink)}
-.bell .st{transition:background .15s,color .15s}
-.bell:disabled{cursor:progress}
+.bell{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:2px 0;color:var(--muted);cursor:pointer}
+.bell .bi{display:grid;color:var(--muted);transition:color .2s}
+.bell.on .bi{color:var(--accent)}
+.bell .tg{position:relative;width:36px;height:20px;border-radius:999px;background:var(--chip);box-shadow:inset 0 0 0 1px var(--line);transition:background .2s,box-shadow .2s}
+.bell .kn{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s}
+.bell.on .tg{background:var(--accent);box-shadow:none}
+.bell.on .kn{transform:translateX(16px)}
+.bell:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:999px}
+@media (prefers-reduced-motion:reduce){.bell .tg,.bell .kn,.bell .bi{transition:none}}
 .pcf{display:flex;flex-direction:column;gap:3px}
 .me b{color:var(--ink);font-weight:600}
 .link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
@@ -121,7 +126,10 @@ th.c,td.c{text-align:center}
 td.rank{font-family:var(--display);font-weight:700;font-size:22px;width:44px;text-align:left}
 td.name{font-weight:600;font-size:16px;white-space:nowrap}
 td.total{font-family:var(--display);font-weight:700;font-size:24px}
-tr.leader td.rank{color:var(--gold)}
+/* Rank in Puan Tablosu: every number sits in the same centred box, so the leader's cyan badge
+   lines up with the other ranks and with the "#" header. */
+.standings .rk{display:inline-block;box-sizing:border-box;min-width:30px;padding:0 4px;border-radius:6px;text-align:center;line-height:1.3}
+tr.leader td.rank .rk{background:var(--accent);color:var(--accent-ink)}
 tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-size:13px}
 .lt td.fx{white-space:nowrap}
 .lt .fx b{font-weight:600}
@@ -201,7 +209,9 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .qfoot{padding:8px 12px;border-top:1px solid var(--line)}
 .savebar.sticky{position:sticky;bottom:0;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 16px rgba(0,0,0,.18)}
 .lt tr.trrow td.fx{box-shadow:inset 3px 0 0 var(--accent)}
-.periods td.best{font-weight:700;color:var(--gold)}
+/* Periods: every value has the same padding so the period winner's cyan badge doesn't shift its column. */
+.periods .pv{display:inline-block;padding:1px 3px;margin-right:-3px;border-radius:5px}
+.periods td.best .pv{font-weight:700;background:var(--accent);color:var(--accent-ink)}
 /* Süper Lig / Şampiyonlar Ligi switch (Liglerin Puan Tablosu) */
 /* Sliding toggle (like an iPhone setting): a white knob slides under the chosen league. */
 /* Full width, so it lines up with the table or cards below it. */
@@ -263,7 +273,9 @@ th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
   .league td.name{font-size:14px}
   .standings th,.standings td{padding:9px 5px;font-size:13px}
   .standings th{font-size:10px;letter-spacing:.04em;white-space:normal;line-height:1.2}
-  .standings td.rank{font-size:18px;width:22px}
+  .standings td.rank,.standings th.rank{font-size:18px;width:28px}
+  .standings th.rank{font-size:10px}
+  .standings .rk{min-width:24px}
   .standings td.name{font-size:14px;line-height:1.2}
   .standings td.total{font-size:19px}
   .periods th,.periods td{padding:8px 5px;font-size:13px}
@@ -437,13 +449,12 @@ function header(){
   const p=S.me&&playerById(S.me);
   const upd=S.syncedAt?new Date(S.syncedAt):null;
   return h("div",{class:"top"},
+    p&&S.push&&S.push!=="unsupported"?h("div",{class:"belltop"},bellSwitch()):null,
     h("div",{class:"brand"},h("h1",{},"Tahmin ",h("span",{},"Ligi")),
       h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
     p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),
       h("button",{class:"link","aria-expanded":String(!!S.pc),onclick:()=>{S.pc=S.pc?null:{old:"",n1:"",n2:"",err:""};render();if(S.pc)setTimeout(()=>{const el=document.getElementById("pcOld");el&&el.focus()},0)}},"PIN'i değiştir"),
-      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap"),
-      S.push&&S.push!=="unsupported"?h("button",{class:"bell"+(S.push==="on"?" on":""),"aria-pressed":String(S.push==="on"),disabled:S.pushBusy,onclick:togglePush},
-        "Maç Öncesi Bildirimler",h("span",{class:"st"},S.push==="on"?"Açık":"Kapalı")):null):
+      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap")):
       loadedAll()&&S.tab!=="predict"&&S.tab!=="ucl"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
 }
 
@@ -520,7 +531,13 @@ async function pushCheck(sync){
     if(sub&&sync&&S.me)pushSave(sub).catch(()=>{})}
   catch(e){S.push="off"}
   render()}
-async function togglePush(){
+/* Maç Öncesi Bildirimler switch: a bell and a small sliding toggle (no text; the name is its label). */
+const BELL_SVG='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2.5a6 6 0 0 0-6 6v3.4l-1.6 2.9a1 1 0 0 0 .9 1.5h13.4a1 1 0 0 0 .9-1.5L18 11.9V8.5a6 6 0 0 0-6-6Zm-2.6 15.3a2.7 2.7 0 0 0 5.2 0Z"/></svg>';
+function bellSwitch(){
+  const on=S.push==="on",bi=h("span",{class:"bi"});bi.innerHTML=BELL_SVG;
+  return h("button",{class:"bell"+(on?" on":""),role:"switch","aria-checked":String(on),"aria-label":"Maç Öncesi Bildirimler",title:"Maç Öncesi Bildirimler",onclick:togglePush},
+    bi,h("span",{class:"tg"},h("span",{class:"kn"})))}
+async function togglePush(ev){
   if(S.pushBusy||!S.me)return;
   if(S.push==="install"){toast("Bildirimler için Safari'de Paylaş › Ana Ekrana Ekle'ye dokun, sonra Tahmin Ligi'ni ana ekrandaki simgesinden aç.");return}
   if(S.push==="denied"){toast("Bildirim izni kapalı. iPhone Ayarlar › Bildirimler › Tahmin Ligi'nden aç.",true);return}
@@ -529,9 +546,15 @@ async function togglePush(){
   const perm=!wasOn&&Notification.permission==="default"?Notification.requestPermission():null;
   // The button flips straight away; registering with Apple and the server happens behind it
   // (it can take a few seconds) and the button flips back if that fails.
-  S.push=wasOn?"off":"on";S.pushBusy=true;render();
+  // Slide the tapped switch in place (so it animates); a full redraw would replace it.
+  S.push=wasOn?"off":"on";S.pushBusy=true;
+  const btn=ev&&ev.currentTarget;
+  if(btn&&btn.isConnected){btn.classList.toggle("on",!wasOn);btn.setAttribute("aria-checked",String(!wasOn))}else render();
   const back=(msg,st)=>{S.push=st||"off";toast(msg,true)};
   try{
+    // Let the phone draw the flipped button first: on iPhones the push registration below can
+    // hold up drawing for a moment, so starting it in the same instant delayed the change.
+    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
     if(wasOn){await pushOff();S.push="off";toast("Maç öncesi bildirimler kapandı.");return}
     if(perm&&await perm!=="granted")return back("Bildirim izni verilmedi.",Notification.permission==="denied"?"denied":"off");
     const reg=await navigator.serviceWorker.ready;
@@ -700,10 +723,10 @@ function standingsView(ms){
   // Points are in the periods table below; this table ranks by the period total and shows hit counts.
   return h("div",{style:"display:flex;flex-direction:column;gap:12px"},
     h("div",{class:"tablewrap"},h("table",{class:"standings"},
-      h("thead",{},h("tr",{},h("th",{class:"l"},"#"),h("th",{class:"l"},"Oyuncu"),
+      h("thead",{},h("tr",{},h("th",{class:"l rank"},h("span",{class:"rk"},"#")),h("th",{class:"l"},"Oyuncu"),
         POOLS.map(([k,l])=>h("th",{class:"opt",title:l+" isabeti (sezon)"},SHORT[k])),h("th",{class:"opt",title:"Puanlanan maç (sezon)"},"Maç"))),
       h("tbody",{},rows.map(r=>h("tr",{class:(r.rank===1&&r.pts>0?"leader ":"")+(r.p.id===S.me?"isme":"")},
-        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.p.name}),
+        h("td",{class:"rank"},h("span",{class:"rk"},r.rank)),h("td",{class:"name l",text:r.p.name}),
         POOLS.map(([k])=>h("td",{class:"opt"},r.c[k])),h("td",{class:"opt"},r.n)))))),
     h("p",{class:"small muted",style:"margin:0"},`Sıralama ${pr}–${pr+1}. hafta dönemindeki toplam puana göre (puanlar aşağıdaki tabloda). TS, K, Ü/A, KG: sezon boyunca o kategoride kaç kez isabet; Maç: puanlanan maç sayısı. Şampiyonlar Ligi maçları, ardından gelen Süper Lig haftasına sayılır. Dönem seçimi Süper Lig Tahmin sekmesindeki haftayı izler.`),
     insightsView(),
@@ -771,7 +794,7 @@ function periodsView(B){
   const periods=[];for(let p=periodOf(12);p<=periodOf(lastW);p+=2)periods.push(p);
   if(!periods.length)return null;
   const cells=(v,best)=>S.players.map(p=>{const x=v[p.id]||0;
-    return h("td",{class:(best!=null&&x===best&&best>0?"best ":"")+(p.id===S.me?"mine":"")},fmtPts(x))});
+    return h("td",{class:(best!=null&&x===best&&best>0?"best ":"")+(p.id===S.me?"mine":"")},h("span",{class:"pv"},fmtPts(x)))});
   return h("section",{class:"panel"},h("h2",{},"İki haftalık dönemler"),
     h("div",{class:"tablewrap"},h("table",{class:"periods"},
       h("thead",{},h("tr",{},h("th",{class:"l"},"Hafta"),S.players.map(p=>h("th",{class:p.id===S.me?"mine":null,text:p.short})))),
@@ -780,7 +803,7 @@ function periodsView(B){
         return h("tbody",{},
           [pr,pr+1].map(w=>h("tr",{class:"wk"},h("td",{class:"l"},`${w}. Hafta`),cells(B.wk[w]||{},null))),
           h("tr",{class:"sum"},h("td",{class:"l"},"Toplam",live?h("small",{class:"muted"},"Devam Ediyor"):null),cells(v,best)))}))),
-    h("p",{class:"small muted",style:"margin:0"},"Altın renkli rakam o dönemin birincisi. Devam eden dönemlerde canlı maçların puanları da gösterilir."))}
+    h("p",{class:"small muted",style:"margin:0"},"Camgöbeği kutudaki rakam o dönemin birincisi. Devam eden dönemlerde canlı maçların puanları da gösterilir."))}
 
 /* ---------- Champions League ----------
    Turkish teams' matches are predicted like Süper Lig matches (same scoring, same Puan Tablosu);
