@@ -523,12 +523,17 @@ const standalone=()=>navigator.standalone===true||matchMedia("(display-mode: sta
 const b64u=s=>{const b=atob((s+"===".slice((s.length+3)%4)).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(b,c=>c.charCodeAt(0))};
 async function pushSub(){if(!pushOK())return null;const reg=await navigator.serviceWorker.getRegistration();return reg?reg.pushManager.getSubscription():null}
 const pushSave=sub=>{const j=sub.toJSON();return rpc("push_subscribe",{p_player:S.me,p_pin:S.pin,p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth})};
-/* Reads this phone's state. After a login, an existing subscription is re-saved for this player. */
+/* On/off is remembered per phone (lsGet("push")). Turning off only removes the phone from the
+   server list and keeps the iPhone's push registration, so turning on again is one quick server call
+   and never has to register with Apple again (repeated register/unregister is what made iPhones
+   unreliable). Older phones that registered before this flag existed count as on. */
+const pushWanted=sub=>{const f=lsGet("push");return f?f==="on":!!sub};
+/* Reads this phone's state. After a login, a phone that is on is re-saved for this player. */
 async function pushCheck(sync){
   if(!pushOK()){S.push=isIOS()&&!standalone()?"install":"unsupported";render();return}
   try{const sub=await pushSub();
-    S.push=sub?"on":Notification.permission==="denied"?"denied":"off";
-    if(sub&&sync&&S.me)pushSave(sub).catch(()=>{})}
+    S.push=Notification.permission==="denied"?"denied":sub&&pushWanted(sub)?"on":"off";
+    if(S.push==="on"&&sync&&S.me)pushSave(sub).catch(()=>{})}
   catch(e){S.push="off"}
   render()}
 /* Maç Öncesi Bildirimler switch: a bell and a small sliding toggle (no text; the name is its label). */
@@ -537,41 +542,54 @@ function bellSwitch(){
   const on=S.push==="on",bi=h("span",{class:"bi"});bi.innerHTML=BELL_SVG;
   return h("button",{class:"bell"+(on?" on":""),role:"switch","aria-checked":String(on),"aria-label":"Maç Öncesi Bildirimler",title:"Maç Öncesi Bildirimler",onclick:togglePush},
     bi,h("span",{class:"tg"},h("span",{class:"kn"})))}
-async function togglePush(ev){
-  if(S.pushBusy||!S.me)return;
+/* Every tap flips the switch at once and is never ignored. One background job then brings the
+   phone and the server in line with the switch, one step at a time; taps made while it works are
+   picked up when it finishes the current step, so the last tap always wins. */
+function togglePush(ev){
+  if(!S.me)return;
   if(S.push==="install"){toast("Bildirimler için Safari'de Paylaş › Ana Ekrana Ekle'ye dokun, sonra Tahmin Ligi'ni ana ekrandaki simgesinden aç.");return}
   if(S.push==="denied"){toast("Bildirim izni kapalı. iPhone Ayarlar › Bildirimler › Tahmin Ligi'nden aç.",true);return}
+  const want=S.push!=="on";
   // Ask for permission straight from the tap (iPhones require it).
-  const wasOn=S.push==="on";
-  const perm=!wasOn&&Notification.permission==="default"?Notification.requestPermission():null;
-  // The button flips straight away; registering with Apple and the server happens behind it
-  // (it can take a few seconds) and the button flips back if that fails.
+  const perm=want&&Notification.permission==="default"?Notification.requestPermission():null;
+  S.push=want?"on":"off";lsSet("push",S.push);
   // Slide the tapped switch in place (so it animates); a full redraw would replace it.
-  S.push=wasOn?"off":"on";S.pushBusy=true;
   const btn=ev&&ev.currentTarget;
-  if(btn&&btn.isConnected){btn.classList.toggle("on",!wasOn);btn.setAttribute("aria-checked",String(!wasOn))}else render();
-  const back=(msg,st)=>{S.push=st||"off";toast(msg,true)};
-  try{
-    // Let the phone draw the flipped button first: on iPhones the push registration below can
-    // hold up drawing for a moment, so starting it in the same instant delayed the change.
+  if(btn&&btn.isConnected){btn.classList.toggle("on",want);btn.setAttribute("aria-checked",String(want))}else render();
+  pushRun(perm)}
+let pushJob=null;
+function pushRun(perm){
+  if(pushJob){pushJob.again=true;if(perm)pushJob.perm=perm;return}
+  const job=pushJob={again:true,perm,err:false};
+  (async()=>{
+    // Let the phone draw the flipped switch before any push work starts.
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
-    if(wasOn){await pushOff();S.push="off";toast("Maç öncesi bildirimler kapandı.");return}
-    if(perm&&await perm!=="granted")return back("Bildirim izni verilmedi.",Notification.permission==="denied"?"denied":"off");
+    try{while(job.again&&S.me){job.again=false;const p=job.perm;job.perm=null;await pushApply(p,job)}}
+    finally{pushJob=null;
+      if(!job.err&&S.me)toast(S.push==="on"?"Bildirimler açık. Tahminin eksikse, kilitlenmeden 2 saat önce haber veririz.":"Maç öncesi bildirimler kapandı.");
+      render()}})()}
+/* Makes the phone and the server match the switch (S.push). On failure the switch goes back. */
+async function pushApply(perm,job){
+  const want=S.push==="on";
+  const fail=(msg,st)=>{if(job.again)return; // a newer tap decides
+    job.err=true;S.push=st||(want?"off":"on");lsSet("push",S.push==="on"?"on":"off");toast(msg,true)};
+  try{
+    if(!want){const sub=await pushSub();if(sub){const r=await rpc("push_unsubscribe",{p_endpoint:sub.endpoint});if(!r||!r.ok)fail("Bildirimler kapatılamadı. Tekrar dene.")}return}
+    if(perm&&await perm!=="granted")return fail("Bildirim izni verilmedi.",Notification.permission==="denied"?"denied":"off");
     const reg=await navigator.serviceWorker.ready;
     const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
+    if(job.again)return; // switched off again meanwhile; the next step handles it
     const r=await pushSave(sub);
-    if(!r||!r.ok){await sub.unsubscribe().catch(()=>{});
-      if(r&&r.error==="bad_pin"){S.push="off";signOut();toast("PIN artık geçerli değil. Tekrar giriş yap.",true)}else back("Bildirimler açılamadı. Tekrar dene.");return}
-    S.push="on";toast("Bildirimler açık. Tahminin eksikse, kilitlenmeden 2 saat önce haber veririz.")}
+    if(!r||!r.ok){
+      if(r&&r.error==="bad_pin"){job.err=true;S.push="off";lsSet("push","off");signOut();toast("PIN artık geçerli değil. Tekrar giriş yap.",true)}
+      else fail("Bildirimler açılamadı. Tekrar dene.")}}
   catch(e){
-    if(Notification.permission==="denied")back("Bildirim izni kapalı. iPhone Ayarlar › Bildirimler › Tahmin Ligi'nden aç.","denied");
-    else back(isLocked(e)?"Çok fazla hatalı PIN denemesi. 15 dakika sonra tekrar dene.":"Bildirimler açılamadı. Tekrar dene.")}
-  finally{S.pushBusy=false;render()}}
-/* Turns this phone's notifications off (also when signing out, so it stops getting that player's reminders). */
+    if(want&&Notification.permission==="denied")fail("Bildirim izni kapalı. iPhone Ayarlar › Bildirimler › Tahmin Ligi'nden aç.","denied");
+    else fail(isLocked(e)?"Çok fazla hatalı PIN denemesi. 15 dakika sonra tekrar dene.":want?"Bildirimler açılamadı. Tekrar dene.":"Bildirimler kapatılamadı. Tekrar dene.")}}
+/* Signing out: this phone stops getting that player's reminders (the next player starts with it off). */
 async function pushOff(){
-  try{const sub=await pushSub();if(!sub)return;
-    await rpc("push_unsubscribe",{p_endpoint:sub.endpoint}).catch(()=>{});
-    await sub.unsubscribe();if(S.push==="on"){S.push="off";render()}}catch(e){}}
+  lsSet("push","off");if(S.push==="on")S.push="off";
+  try{const sub=await pushSub();if(sub)await rpc("push_unsubscribe",{p_endpoint:sub.endpoint})}catch(e){}}
 function mergeMine(){if(S.me&&S.myPicks)S.picks[S.me]={...(S.picks[S.me]||{}),...S.myPicks}}
 function signOut(){S.me=null;S.pin=null;S.myPicks=null;S.drafts={};lsSet("session",null);refresh()}
 async function restoreSession(){
