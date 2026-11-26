@@ -28,9 +28,24 @@ create table if not exists public.push_sent (
   primary key (player_id, gkey)
 );
 
+-- One-off messages (e.g. a test notification), sent on the next run and then deleted.
+-- Queue one from the SQL Editor:  select public.push_send_test('can');
+create table if not exists public.push_outbox (
+  id          bigserial primary key,
+  endpoint    text not null,
+  p256dh      text not null,
+  auth        text not null,
+  title       text not null,
+  body        text not null,
+  url         text not null default '#predict',
+  tag         text not null default 'test',
+  created_at  timestamptz not null default now()
+);
+
 alter table public.push_subs enable row level security;
 alter table public.push_sent enable row level security;
-revoke all on public.push_subs, public.push_sent from anon, authenticated;
+alter table public.push_outbox enable row level security;
+revoke all on public.push_subs, public.push_sent, public.push_outbox from anon, authenticated;
 
 -- ---------- called by the page ----------
 -- Saves this phone's push address for the player (PIN checked). A phone belongs to one player:
@@ -43,7 +58,8 @@ security definer
 set search_path = public, extensions
 as $$
 begin
-  if coalesce(p_endpoint, '') !~ '^https://\S{10,1000}$'
+  -- (PostgreSQL regex repeat counts go up to 255 only, so the endpoint length is checked separately.)
+  if coalesce(p_endpoint, '') !~ '^https://\S+$' or length(p_endpoint) not between 20 and 1000
      or coalesce(p_p256dh, '') !~ '^[A-Za-z0-9_=-]{40,200}$'
      or coalesce(p_auth, '') !~ '^[A-Za-z0-9_=-]{10,100}$' then
     return json_build_object('ok', false, 'error', 'bad_input');
@@ -109,7 +125,8 @@ as $$
 $$;
 revoke all on function public._push_due() from public, anon, authenticated;
 
--- Called by the Edge Function: marks the due reminders as sent and returns one message per phone.
+-- Called by the Edge Function: marks the due reminders as sent and returns one message per phone,
+-- plus any one-off messages from push_outbox (which are removed as they are handed out).
 -- Marking first means a reminder is never sent twice, even if two runs overlap.
 create or replace function public.push_claim()
 returns json
@@ -125,18 +142,46 @@ as $$
     select player_id, gkey from due
     on conflict do nothing
     returning player_id, gkey
-  )
-  select coalesce(json_agg(json_build_object(
+  ), outbox as (
+    delete from push_outbox returning *
+  ), msgs as (
+    select json_build_object('endpoint', o.endpoint, 'p256dh', o.p256dh, 'auth', o.auth,
+             'tag', o.tag, 'url', o.url, 'title', o.title, 'body', o.body) as m
+      from outbox o
+    union all
+    select json_build_object(
            'endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth,
            'tag', d.gkey,
            'url', case when d.comp = 'ucl' then '#ucl' else '#predict' end,
            'title', case when d.comp = 'ucl' then 'Şampiyonlar Ligi tahminleri'
                          else d.week || '. hafta tahminleri' end,
            'body', d.missing || ' maçı henüz tahmin etmedin. Kilit saati '
-                   || to_char(d.lock_at at time zone 'Europe/Istanbul', 'HH24:MI') || ' (ilk maç).')), '[]'::json)
-    from due d
-    join ins i on i.player_id = d.player_id and i.gkey = d.gkey
-    join push_subs s on s.player_id = d.player_id;
+                   || to_char(d.lock_at at time zone 'Europe/Istanbul', 'HH24:MI') || ' (ilk maç).')
+      from due d
+      join ins i on i.player_id = d.player_id and i.gkey = d.gkey
+      join push_subs s on s.player_id = d.player_id
+  )
+  select coalesce(json_agg(m), '[]'::json) from msgs;
+$$;
+
+-- Queues a test notification (same look as a real reminder) for every phone of one player and
+-- sends it right away. Run from the SQL Editor; returns how many phones it went to.
+create or replace function public.push_send_test(p_player text)
+returns int
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare n int;
+begin
+  insert into push_outbox (endpoint, p256dh, auth, title, body, url, tag)
+  select endpoint, p256dh, auth, 'Deneme · 14. hafta tahminleri',
+         '3 maçı henüz tahmin etmedin. Kilit saati 20:00 (ilk maç).', '#predict', 'test'
+    from push_subs where player_id = p_player;
+  get diagnostics n = row_count;
+  if n > 0 then perform push_tick(); end if;
+  return n;
+end
 $$;
 
 -- Called by the Edge Function: forgets phones whose push address no longer works
@@ -160,7 +205,8 @@ set search_path = public, extensions
 as $$
 begin
   delete from push_sent where at < now() - interval '60 days';
-  if exists (select 1 from _push_due() where missing > 0) then
+  delete from push_outbox where created_at < now() - interval '1 day';
+  if exists (select 1 from push_outbox) or exists (select 1 from _push_due() where missing > 0) then
     perform net.http_post(
       -- The Edge Function is named "push-reminders" in the dashboard, but Supabase gave it the
       -- address "quick-processor" (shown on its Overview page).
@@ -176,6 +222,7 @@ revoke all on function public.push_unsubscribe(text) from public;
 revoke all on function public.push_claim() from public, anon, authenticated;
 revoke all on function public.push_gone(text[]) from public, anon, authenticated;
 revoke all on function public.push_tick() from public, anon, authenticated;
+revoke all on function public.push_send_test(text) from public, anon, authenticated;
 grant execute on function public.push_subscribe(text, text, text, text, text) to anon, authenticated;
 grant execute on function public.push_unsubscribe(text) to anon, authenticated;
 grant execute on function public.push_claim() to service_role;
