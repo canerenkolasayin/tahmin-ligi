@@ -15,6 +15,30 @@ self.addEventListener("activate", e => {
     .then(() => self.clients.claim()));
 });
 
+// "Maç Öncesi Bildirimler": show the reminder sent by the push-reminders Edge Function.
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Tahmin Ligi", {
+    body: d.body || "",
+    tag: d.tag || undefined,
+    icon: "icons/icon-192.png",
+    badge: "icons/icon-192.png",
+    data: { url: new URL(d.url || "./", self.registration.scope).href },
+  }));
+});
+
+// Tapping the notification opens the app on the right tab.
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || self.registration.scope;
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    const c = list.find(x => x.url.startsWith(self.registration.scope));
+    if (c) return c.focus().then(w => (w || c).navigate ? (w || c).navigate(url) : null).catch(() => self.clients.openWindow(url));
+    return self.clients.openWindow(url);
+  }));
+});
+
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;

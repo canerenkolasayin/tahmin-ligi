@@ -48,6 +48,10 @@ button{cursor:pointer}
 .brand p{margin:4px 0 0;color:var(--muted);font-size:13px;letter-spacing:.06em;text-transform:capitalize}
 .me{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;color:var(--muted)}
 .pcrow{align-items:flex-end;gap:10px}
+.bell{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:3px 4px 3px 11px;font-size:13px;font-weight:600;color:var(--ink)}
+.bell .st{border-radius:999px;padding:1px 9px;background:var(--bg);color:var(--muted);font-size:12px}
+.bell.on .st{background:var(--accent);color:var(--accent-ink)}
+.bell:disabled{opacity:.6;cursor:default}
 .pcf{display:flex;flex-direction:column;gap:3px}
 .me b{color:var(--ink);font-weight:600}
 .link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
@@ -436,7 +440,9 @@ function header(){
       h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
     p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),
       h("button",{class:"link","aria-expanded":String(!!S.pc),onclick:()=>{S.pc=S.pc?null:{old:"",n1:"",n2:"",err:""};render();if(S.pc)setTimeout(()=>{const el=document.getElementById("pcOld");el&&el.focus()},0)}},"PIN'i değiştir"),
-      h("button",{class:"link",onclick:signOut},"çıkış yap")):
+      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap"),
+      S.push&&S.push!=="unsupported"?h("button",{class:"bell"+(S.push==="on"?" on":""),"aria-pressed":String(S.push==="on"),disabled:S.pushBusy,onclick:togglePush},
+        "Maç Öncesi Bildirimler",h("span",{class:"st"},S.push==="on"?"Açık":"Kapalı")):null):
       loadedAll()&&S.tab!=="predict"&&S.tab!=="ucl"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
 }
 
@@ -493,7 +499,51 @@ async function login(pid,pin){
   if(!r||!r.ok)return false;
   S.me=pid;S.pin=pin;S.drafts={};
   const mine={};(r.picks||[]).forEach(x=>{mine[x.m]={h:x.h,a:x.a}});S.myPicks=mine;mergeMine();
-  lsSet("session",JSON.stringify({pid,pin}));return true}
+  lsSet("session",JSON.stringify({pid,pin}));pushCheck(true);return true}
+
+/* ---------- Maç Öncesi Bildirimler (push reminders; see push.sql and sw.js) ----------
+   S.push: "on" | "off" | "denied" (blocked in iPhone Settings) | "install" (iPhone Safari tab:
+   push only works from the home-screen app) | "unsupported" (button hidden). */
+const VAPID_PUBLIC="BHPi08kaKgWymktDdstovFRaq1BXfGfurNC1n7jcE0FzivFn_AP2uB7oYX9sSrd0hb2U1K5JB5pcMv38XP6KKgg";
+const pushOK=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window;
+const isIOS=()=>/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const standalone=()=>navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+const b64u=s=>{const b=atob((s+"===".slice((s.length+3)%4)).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(b,c=>c.charCodeAt(0))};
+async function pushSub(){if(!pushOK())return null;const reg=await navigator.serviceWorker.getRegistration();return reg?reg.pushManager.getSubscription():null}
+const pushSave=sub=>{const j=sub.toJSON();return rpc("push_subscribe",{p_player:S.me,p_pin:S.pin,p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth})};
+/* Reads this phone's state. After a login, an existing subscription is re-saved for this player. */
+async function pushCheck(sync){
+  if(!pushOK()){S.push=isIOS()&&!standalone()?"install":"unsupported";render();return}
+  try{const sub=await pushSub();
+    S.push=sub?"on":Notification.permission==="denied"?"denied":"off";
+    if(sub&&sync&&S.me)pushSave(sub).catch(()=>{})}
+  catch(e){S.push="off"}
+  render()}
+async function togglePush(){
+  if(S.pushBusy||!S.me)return;
+  if(S.push==="install"){toast("Bildirimler için Safari'de Paylaş › Ana Ekrana Ekle'ye dokun, sonra Tahmin Ligi'ni ana ekrandaki simgesinden aç.");return}
+  if(S.push==="denied"){toast("Bildirim izni kapalı. iPhone Ayarlar › Bildirimler › Tahmin Ligi'nden aç.",true);return}
+  // Ask for permission straight from the tap (iPhones require it).
+  const perm=S.push!=="on"&&Notification.permission==="default"?Notification.requestPermission():null;
+  S.pushBusy=true;render();
+  try{
+    if(S.push==="on"){await pushOff();S.push="off";toast("Maç öncesi bildirimler kapandı.");return}
+    if(perm&&await perm!=="granted"){S.push=Notification.permission==="denied"?"denied":"off";toast("Bildirim izni verilmedi.",true);return}
+    const reg=await navigator.serviceWorker.ready;
+    const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
+    const r=await pushSave(sub);
+    if(!r||!r.ok){await sub.unsubscribe().catch(()=>{});
+      if(r&&r.error==="bad_pin"){signOut();toast("PIN artık geçerli değil. Tekrar giriş yap.",true)}else toast("Bildirimler açılamadı. Tekrar dene.",true);return}
+    S.push="on";toast("Bildirimler açık. Tahminin eksikse, kilitlenmeden 2 saat önce haber veririz.")}
+  catch(e){
+    if(Notification.permission==="denied"){S.push="denied";toast("Bildirim izni kapalı. iPhone Ayarlar › Bildirimler › Tahmin Ligi'nden aç.",true)}
+    else toast(isLocked(e)?"Çok fazla hatalı PIN denemesi. 15 dakika sonra tekrar dene.":"Bildirimler açılamadı. Tekrar dene.",true)}
+  finally{S.pushBusy=false;render()}}
+/* Turns this phone's notifications off (also when signing out, so it stops getting that player's reminders). */
+async function pushOff(){
+  try{const sub=await pushSub();if(!sub)return;
+    await rpc("push_unsubscribe",{p_endpoint:sub.endpoint}).catch(()=>{});
+    await sub.unsubscribe();if(S.push==="on"){S.push="off";render()}}catch(e){}}
 function mergeMine(){if(S.me&&S.myPicks)S.picks[S.me]={...(S.picks[S.me]||{}),...S.myPicks}}
 function signOut(){S.me=null;S.pin=null;S.myPicks=null;S.drafts={};lsSet("session",null);refresh()}
 async function restoreSession(){
