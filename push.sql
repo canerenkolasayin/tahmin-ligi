@@ -162,7 +162,9 @@ begin
   delete from push_sent where at < now() - interval '60 days';
   if exists (select 1 from _push_due() where missing > 0) then
     perform net.http_post(
-      url     := 'https://phmvejwbjqhbqzuaomgp.supabase.co/functions/v1/push-reminders',
+      -- The Edge Function is named "push-reminders" in the dashboard, but Supabase gave it the
+      -- address "quick-processor" (shown on its Overview page).
+      url     := 'https://phmvejwbjqhbqzuaomgp.supabase.co/functions/v1/quick-processor',
       body    := '{}'::jsonb,
       headers := '{"Content-Type": "application/json"}'::jsonb);
   end if;

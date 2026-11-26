@@ -44,6 +44,8 @@ A Süper Lig 2026–27 score-prediction league for four friends.
   2. Edge Functions > Deploy a new function > Via Editor: name it `push-reminders`, paste
      `supabase/functions/push-reminders/index.ts`, deploy. In its settings turn **off** "Verify JWT"
      (Supabase Cron calls it without a login; it only ever sends reminders that are due).
+     The dashboard may give it a different web address than its name (here `quick-processor`);
+     `push_tick()` in `push.sql` must use the address shown on the function's Overview page.
   3. Edge Functions > Secrets: add `VAPID_PRIVATE_KEY`.
 
 ## Scoring
