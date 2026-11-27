@@ -48,6 +48,11 @@ A Süper Lig 2026–27 score-prediction league for four friends.
      `push_tick()` in `push.sql` must use the address shown on the function's Overview page.
   3. Edge Functions > Secrets: add `VAPID_PRIVATE_KEY`.
 
+- **Team logos:** `sync.mjs` saves each team's ESPN id (`meta` key `team_ids`, returned by `get_state`).
+  The page loads the logo from ESPN's image service at 64 px (white-on-dark version first, then the
+  normal one), and `sw.js` keeps them on the phone. A team without a logo shows its initials. The logo
+  files are not stored in this repository (club crests are the clubs' trademarks).
+
 ## Scoring
 
 Each match has pools split equally between the players who got that category right

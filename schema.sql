@@ -165,6 +165,7 @@ as $$
                   from picks p join matches m on m.id = p.match_id
                  where not _match_locked(m.comp, m.week, m.kickoff)),
     'ucl_table', (select value::json from meta where key = 'ucl_standings'),
+    'team_ids',  (select value::json from meta where key = 'team_ids'),   -- for team logos
     'synced_at', (select value from meta where key = 'synced_at'),
     'now', now()
   );

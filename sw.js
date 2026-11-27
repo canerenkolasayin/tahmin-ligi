@@ -50,7 +50,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
-  if (!sameOrigin && !isFont) return; // Supabase and everything else: straight to the network
+  const isLogo = url.hostname === "a.espncdn.com"; // team logos (loaded with CORS, so failed ones aren't kept)
+  if (!sameOrigin && !isFont && !isLogo) return; // Supabase and everything else: straight to the network
 
   if (req.mode === "navigate" || url.pathname.endsWith("/index.html")) {
     // Network first, cached page when offline.
@@ -59,7 +60,7 @@ self.addEventListener("fetch", e => {
       .catch(() => caches.match("./index.html")));
     return;
   }
-  // Icons, manifest and fonts: cache first, refreshed in the background.
+  // Icons, manifest, fonts and team logos: cache first, refreshed in the background.
   e.respondWith(caches.match(req).then(hit => {
     const net = fetch(req).then(res => {
       if (res.ok || res.type === "opaque") { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }

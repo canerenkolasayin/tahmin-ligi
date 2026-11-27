@@ -92,6 +92,10 @@ if (tsl.length < 100) throw new Error(`Only ${tsl.length} Süper Lig matches ret
 const tslWeeks = assignWeeks(tsl, 5);
 await upsert("matches", tsl.map(m => row(m, true)));
 const turkishIds = new Set(tsl.flatMap(m => [m.homeId, m.awayId]));
+// Team name (as the app shows it) -> ESPN team id; the page builds each team's logo address from it.
+const teamIds = {};
+const addIds = list => list.forEach(m => { teamIds[m.home] = m.homeId; teamIds[m.away] = m.awayId; });
+addIds(tsl);
 console.log(`Süper Lig: ${tsl.length} matches in ${tslWeeks} weeks (${tsl.filter(m => m.done).length} finished, ${tsl.filter(m => m.state === "in").length} live).`);
 
 // ---------- Champions League ----------
@@ -105,10 +109,12 @@ try {
   // Every Champions League match is predicted (Turkish teams are only highlighted on the page).
   const predicted = ucl.filter(m => turkishIds.has(m.homeId) || turkishIds.has(m.awayId));
   await upsert("matches", ucl.map(m => row(m, true)));
+  addIds(ucl);
 
   const st = await getJson(`${ESPN}/v2/sports/soccer/uefa.champions/standings`);
   const entries = ((st.children || [])[0] || {}).standings?.entries || [];
   const stat = (e, n) => Number((e.stats.find(s => s.name === n) || {}).value || 0);
+  entries.forEach(e => { teamIds[teamName(e.team)] = String(e.team.id); });
   const table = entries.map(e => ({
     rank: stat(e, "rank"), team: teamName(e.team), tr: turkishIds.has(String(e.team.id)),
     o: stat(e, "gamesPlayed"), g: stat(e, "wins"), b: stat(e, "ties"), m: stat(e, "losses"),
@@ -120,4 +126,4 @@ try {
   console.warn(`Champions League sync skipped: ${err.message}`);
 }
 
-await upsert("meta", [{ key: "synced_at", value: now }]);
+await upsert("meta", [{ key: "team_ids", value: JSON.stringify(teamIds) }, { key: "synced_at", value: now }]);

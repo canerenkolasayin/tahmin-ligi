@@ -97,6 +97,20 @@ a.btn{text-decoration:none;display:inline-block}
 .fixture{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
 .team{font-family:var(--display);font-weight:600;font-size:21px;line-height:1.05;min-width:0;overflow-wrap:anywhere}
 .team.home{text-align:right}
+/* Team logos (see logo()): fixed square boxes so rows never shift while a logo loads. The logo sits
+   on the inner side, next to the score: "Home [logo] 2 : 1 [logo] Away". */
+.tl{flex:none;display:inline-block;width:22px;height:22px;object-fit:contain}
+.tl.ini{display:inline-grid;place-items:center;border-radius:50%;background:var(--chip);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);font:700 9px/1 var(--body);letter-spacing:0;text-transform:none}
+.tn{min-width:0}
+.team{display:flex;align-items:center;gap:8px}
+.team.home{justify-content:flex-end}
+.team .tl{width:28px;height:28px}
+.qh,.qa{display:flex;align-items:center;gap:6px}
+.qh{justify-content:flex-end}
+.qrow .tl{width:20px;height:20px}
+.fx .tl{width:16px;height:16px;vertical-align:-3px;margin-right:5px}
+td.name .tm{display:inline-flex;align-items:center;gap:8px;vertical-align:middle;max-width:100%}
+.league .tl{width:20px;height:20px}
 .score{display:flex;align-items:center;gap:5px}
 .score .sep{font-family:var(--display);font-weight:700;font-size:22px;color:var(--muted)}
 .digit{width:44px;height:48px;border-radius:6px;border:0;background:var(--board);color:var(--board-ink);font-family:var(--display);font-weight:700;font-size:28px;text-align:center;display:grid;place-items:center;font-variant-numeric:tabular-nums}
@@ -160,6 +174,10 @@ tr.isme td.name::after{content:" (sen)";color:var(--muted);font-weight:400;font-
 .league td.name{white-space:normal;overflow-wrap:anywhere}
 @media (max-width:600px){.league th.rk{width:32px}.league th.n{width:28px}.league th.av{width:38px}.league th.pt{width:34px}}
 @media (max-width:400px){.league th.rk{width:28px}.league th.n{width:24px}.league th.av{width:34px}.league th.pt{width:30px}}
+/* Smallest phones: slimmer number columns and logo so the longest names (Internazionale,
+   Gençlerbirliği) still fit on one line next to their logo. */
+@media (max-width:360px){.league th.n{width:21px}.league th.av{width:31px}.league th.pt{width:28px}
+  .league .tl{width:14px;height:14px}.league td.name .tm{gap:4px}}
 .sub{font-family:var(--display);font-size:19px;font-weight:700;text-transform:capitalize;letter-spacing:.03em;margin:4px 0 0}
 .matchwrap{border-top:1px solid var(--line);padding-bottom:12px}
 .matchwrap:first-child{border-top:0}
@@ -320,6 +338,22 @@ th.per,td.per{background:color-mix(in srgb,var(--chip) 55%,transparent)}
   .standings th,.standings td{padding:8px 3px}
   .periods th,.periods td{padding:8px 3px}
   td.name{overflow-wrap:anywhere}
+  /* Narrow phones: the logo goes above the name, so the name keeps the full width of its side. */
+  /* Slightly smaller score boxes, gaps and names so the longest names (Gençlerbirliği, Erzurumspor)
+     fit on one line at 320 px. */
+  .team{flex-direction:column;gap:4px;align-items:flex-start;font-size:15px;hyphens:auto}
+  .team.home{flex-direction:column-reverse;align-items:flex-end}
+  .team .tl{width:24px;height:24px}
+  .fixture{gap:4px}
+  .digit{width:34px}
+  .score{gap:3px}
+  /* Champions League rows: logo above the name, like the Süper Lig cards. */
+  .qh,.qa{flex-direction:column;align-items:flex-start;gap:3px}
+  .qh{flex-direction:column-reverse;align-items:flex-end}
+  .qrow .tl{width:18px;height:18px}
+  .fx .tl{width:14px;height:14px;margin-right:3px}
+  .league .tl{width:16px;height:16px}
+  td.name .tm{gap:5px}
 }
 @media (prefers-reduced-motion:no-preference){.btn,.tab,.arrow{transition:background .15s,color .15s}}
 </style>
@@ -640,6 +674,24 @@ function predictView(ms,wks){
 function digitIn(id,val,label,onv){
   return h("input",{id,class:"digit",value:val,inputmode:"numeric",maxlength:"2",placeholder:" ","aria-label":label,autocomplete:"off",
     oninput:e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,2);onv(e.target.value)}})}
+/* ---------- Team logos ----------
+   Loaded from ESPN by team id (S.teamIds, filled by sync.mjs), at 64 px. The white-on-dark
+   variant is tried first (black crests like Juventus' are invisible on navy); a team without
+   one gets the normal logo, and a team with no logo at all gets its initials in a circle.
+   Failures are remembered so a redraw doesn't ask ESPN again. */
+const LOGO_V={};  // id -> "500" (no dark variant) | "none" (no logo)
+const logoUrl=(id,v)=>`https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/${v}/${id}.png&w=64&h=64`;
+const initials=n=>n.replace(/\b(FK|SK|FC|CF|AŞ)\b/g,"").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toLocaleUpperCase("tr-TR");
+function logo(name){
+  const id=S.teamIds&&S.teamIds[name],ini=()=>h("span",{class:"tl ini","aria-hidden":"true"},initials(name));
+  if(!id||LOGO_V[id]==="none")return ini();
+  const img=h("img",{class:"tl",src:logoUrl(id,LOGO_V[id]||"500-dark"),alt:"",loading:"lazy",decoding:"async",width:"64",height:"64",crossorigin:"anonymous"});
+  img.addEventListener("error",()=>{
+    if(!LOGO_V[id]){LOGO_V[id]="500";img.src=logoUrl(id,"500")}else{LOGO_V[id]="none";img.replaceWith(ini())}});
+  return img}
+/* A team name with its logo. end=true puts the logo after the name (home side, next to the score). */
+const teamTag=(name,end)=>{const t=h("span",{class:"tn",text:name}),l=logo(name);return end?[t,l]:[l,t]};
+
 /* Centred "no prediction / no score yet" dash (see .nil). */
 const nil=(cls)=>h("span",{class:"nil"+(cls?" "+cls:""),role:"img","aria-label":"yok"});
 const digit=(v,cls)=>h("span",{class:"digit"+(cls?" "+cls:"")},v==null||v===""?nil():String(v));
@@ -662,7 +714,7 @@ function matchRow(m,me){
   else if(me&&st)under.push(mine?"Tahminin kilitlendi":"Tahmin yapılmadı");
   return h("div",{class:"match"},
     h("div",{class:"meta"},h("span",{},fmtDate.format(new Date(m.kickoff))),statusChip(m)),
-    h("div",{class:"fixture"},h("div",{class:"team home",text:m.home}),center,h("div",{class:"team",text:m.away})),
+    h("div",{class:"fixture"},h("div",{class:"team home"},teamTag(m.home,true)),center,h("div",{class:"team"},teamTag(m.away))),
     under.length?h("div",{class:"under"},under):null)
 }
 async function savePicks(){
@@ -709,7 +761,7 @@ function pickTable(list,footLabel){
     // On small phones the score column is hidden and each team's goals sit next to its name instead.
     const goals=g=>scored(m)?h("i",{class:"g"},String(g)):null;
     return h("tr",{class:hasTR(m)?"trrow":null},
-      h("td",{class:"fx l"+(isLive(m)?" live":"")},h("b",{},h("span",{},h("span",{text:m.home}),goals(m.hs)),h("span",{class:"vs"}," – "),h("span",{},h("span",{text:m.away}),goals(m.as))),
+      h("td",{class:"fx l"+(isLive(m)?" live":"")},h("b",{},h("span",{},h("span",{},logo(m.home),m.home),goals(m.hs)),h("span",{class:"vs"}," – "),h("span",{},h("span",{},logo(m.away),m.away),goals(m.as))),
         h("small",{class:"fxst"},stTxt),h("div",{},fmtDate.format(new Date(m.kickoff)))),
       sc,
       ps.map(p=>{const x=(S.picks[p.id]||{})[m.id],cls="pk c"+(p.id===S.me?" mine":"");
@@ -869,7 +921,7 @@ function quickRow(m){
     mid=h("div",{class:"qscore"},h("span",{class:"qbox ghost"},nil()),h("span",{class:"sep"},":"),h("span",{class:"qbox ghost"},nil()));
   }
   return h("div",{class:"qrow"+(changed?" changed":"")+(hasTR(m)?" tr":"")},
-    h("span",{class:"qh",text:m.home}),mid,h("span",{class:"qa",text:m.away}),
+    h("span",{class:"qh"},teamTag(m.home,true)),mid,h("span",{class:"qa"},teamTag(m.away)),
     h("span",{class:"qok","aria-label":mine?"Kayıtlı":"Tahmin yok"},mine&&!changed?"✓":""))}
 function quickIn(id,val,label,onv){
   return h("input",{id,class:"qbox",value:val,inputmode:"numeric",pattern:"[0-9]*",maxlength:"2",placeholder:" ","aria-label":label,autocomplete:"off",enterkeyhint:"next",
@@ -895,7 +947,7 @@ function lockedRow(m){
         poolsFor(m).forEach(([k,l])=>sub.push(h("span",{class:"tag"+(r&&r.hit[k]?" hit":""),title:l},SHORT[k])));
         sub.push(h("span",{class:"pts"+(live?" prov":"")+(r&&r.total===0?" zero":"")},"+"+fmtPts(r?r.total:0)))}}}
   return h("div",{class:"qrow lockedrow"+(hasTR(m)?" tr":"")+(me&&mine?" mine":"")},
-    h("span",{class:"qh",text:m.home}),h("div",{class:"qscore"},box(m.hs),h("span",{class:"sep"},":"),box(m.as)),h("span",{class:"qa",text:m.away}),h("span",{}),
+    h("span",{class:"qh"},teamTag(m.home,true)),h("div",{class:"qscore"},box(m.hs),h("span",{class:"sep"},":"),box(m.as)),h("span",{class:"qa"},teamTag(m.away)),h("span",{}),
     sub.some(Boolean)?h("div",{class:"qsub"},sub.filter(Boolean)):null)}
 /* A day's header: date, lock state and how many of my picks are in. */
 function dayHead(day,list){
@@ -978,7 +1030,7 @@ function uclTableView(){
         h("th",{class:"n",title:"Oynanan"},"O"),h("th",{class:"n",title:"Galibiyet"},"G"),h("th",{class:"n",title:"Beraberlik"},"B"),h("th",{class:"n",title:"Mağlubiyet"},"M"),
         h("th",{class:"opt n",title:"Atılan gol"},"A"),h("th",{class:"opt n",title:"Yenilen gol"},"Y"),h("th",{class:"av",title:"Averaj"},"AV"),h("th",{class:"pt"},"P"))),
       h("tbody",{},t.map(r=>h("tr",{class:zone(r)+(r.tr?" tr":"")},
-        h("td",{class:"rank"},r.rank),h("td",{class:"name l",text:r.team}),
+        h("td",{class:"rank"},r.rank),h("td",{class:"name l"},h("span",{class:"tm"},teamTag(r.team))),
         h("td",{},r.o),h("td",{},r.g),h("td",{},r.b),h("td",{},r.m),
         h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),
         h("td",{},sgn(r.av)),h("td",{class:"total"},r.p)))))),
@@ -1024,7 +1076,7 @@ function tslTableView(ms){
         h("th",{class:"opt n",title:"Atılan gol"},"A"),h("th",{class:"opt n",title:"Yenilen gol"},"Y"),h("th",{class:"av",title:"Averaj"},"AV"),
         h("th",{class:"pt"},"P"))),
       h("tbody",{},rows.map((r,i)=>h("tr",{class:i===0&&r.o?"zone":null},
-        h("td",{class:"rank"},i+1),h("td",{class:"name l",text:r.team,title:r.h2h?"Puan eşitliği ikili averajla ayrıldı":null}),
+        h("td",{class:"rank"},i+1),h("td",{class:"name l",title:r.h2h?"Puan eşitliği ikili averajla ayrıldı":null},h("span",{class:"tm"},teamTag(r.team))),
         h("td",{class:"opt l"},h("span",{class:"small muted"},r.form.slice(-5).join(" ")||"–")),
         h("td",{},r.o),h("td",{},r.g),h("td",{},r.b),h("td",{},r.m),
         h("td",{class:"opt"},r.a),h("td",{class:"opt"},r.y),h("td",{},sgn(r.av)),
@@ -1046,6 +1098,7 @@ function applyState(st,cached){
     S.trTeams=new Set(S.matches.flatMap(m=>[m.home,m.away]));
     S.weekEnds=weeksOf(S.matches).map(w=>({w,end:Math.max(...S.matches.filter(m=>m.week===w).map(kick))}));
     S.uclTable=Array.isArray(st.ucl_table)?st.ucl_table:[];
+    S.teamIds=st.team_ids&&typeof st.team_ids==="object"?st.team_ids:{};
     const picks={};(st.picks||[]).forEach(x=>{(picks[x.p]=picks[x.p]||{})[x.m]={h:x.h,a:x.a}});S.picks=picks;mergeMine();
     S.submitted=new Set((st.submitted||[]).map(x=>x.p+"|"+x.m));
     S.syncedAt=st.synced_at;S.loaded=true;
