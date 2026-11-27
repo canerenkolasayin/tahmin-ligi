@@ -50,7 +50,8 @@ A Süper Lig 2026–27 score-prediction league for four friends.
 
 - **Team logos:** `sync.mjs` saves each team's ESPN id (`meta` key `team_ids`, returned by `get_state`).
   The page loads the logo from ESPN's image service at 64 px (white-on-dark version first, then the
-  normal one), and `sw.js` keeps them on the phone. A team without a logo shows its initials. The logo
+  normal one); the browser's own cache keeps them (`sw.js` must not: on iPhone Safari a logo served
+  from the service worker cache fails to display). A team without a logo shows its initials. The logo
   files are not stored in this repository (club crests are the clubs' trademarks).
 
 ## Scoring

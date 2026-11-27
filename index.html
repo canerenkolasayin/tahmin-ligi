@@ -683,8 +683,10 @@ function digitIn(id,val,label,onv){
    Failures are remembered so a redraw doesn't ask ESPN again. */
 // id -> "500" (no dark variant; remembered on the phone, so later visits ask for the right one
 // straight away) | "none" (no logo; this visit only, in case it was a network hiccup).
-const LOGO_V=(()=>{try{return JSON.parse(lsGet("logov")||"{}")||{}}catch(e){return {}}})();
-const saveLogoV=()=>lsSet("logov",JSON.stringify(Object.fromEntries(Object.entries(LOGO_V).filter(([,v])=>v==="500"))));
+// (Key "logov2": the earlier "logov" list on phones was filled in wrongly by the cache problem.)
+lsSet("logov",null);
+const LOGO_V=(()=>{try{return JSON.parse(lsGet("logov2")||"{}")||{}}catch(e){return {}}})();
+const saveLogoV=()=>lsSet("logov2",JSON.stringify(Object.fromEntries(Object.entries(LOGO_V).filter(([,v])=>v==="500"))));
 const logoUrl=(id,v)=>`https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/${v}/${id}.png&w=64&h=64`;
 const initials=n=>n.replace(/\b(FK|SK|FC|CF|AŞ)\b/g,"").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toLocaleUpperCase("tr-TR");
 function logo(name){
@@ -694,7 +696,7 @@ function logo(name){
   // logo can fail at once). On a miss it is replaced by a fresh image rather than given a new address:
   // iPhone Safari doesn't reliably reload an image element that has already failed.
   const make=(v,lazy)=>{
-    const img=h("img",{class:"tl",src:logoUrl(id,v),alt:"",loading:lazy?"lazy":"eager",decoding:"async",width:"64",height:"64",crossorigin:"anonymous"});
+    const img=h("img",{class:"tl",src:logoUrl(id,v),alt:"",loading:lazy?"lazy":"eager",decoding:"async",width:"64",height:"64"});
     if(LOGO_DEBUG){img.addEventListener("load",()=>logoLog(name,v+" ok"));img.addEventListener("error",()=>logoLog(name,v+" FAIL"))}
     img.addEventListener("error",()=>{
       if(v==="500-dark"){if(LOGO_V[id]!=="500"){LOGO_V[id]="500";saveLogoV()}img.replaceWith(make("500",false))}
