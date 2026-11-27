@@ -685,9 +685,13 @@ const initials=n=>n.replace(/\b(FK|SK|FC|CF|AŞ)\b/g,"").trim().split(/\s+/).sli
 function logo(name){
   const id=S.teamIds&&S.teamIds[name],ini=()=>h("span",{class:"tl ini","aria-hidden":"true"},initials(name));
   if(!id||LOGO_V[id]==="none")return ini();
-  const img=h("img",{class:"tl",src:logoUrl(id,LOGO_V[id]||"500-dark"),alt:"",loading:"lazy",decoding:"async",width:"64",height:"64",crossorigin:"anonymous"});
+  // Each image remembers which version it tried itself: the page redraws often, so several copies of
+  // a team's logo can fail at once, and a shared "already tried once" flag made the second copy give up.
+  let v=LOGO_V[id]||"500-dark";
+  const img=h("img",{class:"tl",src:logoUrl(id,v),alt:"",loading:"lazy",decoding:"async",width:"64",height:"64",crossorigin:"anonymous"});
   img.addEventListener("error",()=>{
-    if(!LOGO_V[id]){LOGO_V[id]="500";img.src=logoUrl(id,"500")}else{LOGO_V[id]="none";img.replaceWith(ini())}});
+    if(v==="500-dark"){v="500";if(!LOGO_V[id])LOGO_V[id]="500";img.src=logoUrl(id,"500")}
+    else{LOGO_V[id]="none";img.replaceWith(ini())}});
   return img}
 /* A team name with its logo. end=true puts the logo after the name (home side, next to the score). */
 const teamTag=(name,end)=>{const t=h("span",{class:"tn",text:name}),l=logo(name);return end?[t,l]:[l,t]};
