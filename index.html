@@ -479,7 +479,6 @@ function render(){
     h("div",{class:"toast"+(S.toastErr?" err":""),role:"status"},S.toast)].filter(Boolean));
   if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus();try{sel&&el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
   updateBadge();
-  if(LOGO_DEBUG)drawLogoTest();
 }
 /* Home-screen icon badge: how many open matches in the next 7 days you haven't predicted yet
    (saved predictions only). Shown only while Maç Öncesi Bildirimler is on; cleared otherwise. */
@@ -501,8 +500,7 @@ function header(){
       h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
     p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),
       h("button",{class:"link","aria-expanded":String(!!S.pc),onclick:()=>{S.pc=S.pc?null:{old:"",n1:"",n2:"",err:""};render();if(S.pc)setTimeout(()=>{const el=document.getElementById("pcOld");el&&el.focus()},0)}},"PIN'i değiştir"),
-      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap"),
-      S.me==="can"||LOGO_DEBUG?h("button",{class:"link",onclick:toggleLogoTest},LOGO_DEBUG?"logo testini kapat":"logo testi"):null):
+      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap")):
       loadedAll()&&S.tab!=="predict"&&S.tab!=="ucl"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
 }
 
@@ -684,41 +682,24 @@ function digitIn(id,val,label,onv){
 // id -> "500" (no dark variant; remembered on the phone, so later visits ask for the right one
 // straight away) | "none" (no logo; this visit only, in case it was a network hiccup).
 // (Key "logov2": the earlier "logov" list on phones was filled in wrongly by the cache problem.)
-lsSet("logov",null);
+lsSet("logov",null);lsSet("logotest",null);  // leftovers from the logo test (removed)
 const LOGO_V=(()=>{try{return JSON.parse(lsGet("logov2")||"{}")||{}}catch(e){return {}}})();
 const saveLogoV=()=>lsSet("logov2",JSON.stringify(Object.fromEntries(Object.entries(LOGO_V).filter(([,v])=>v==="500"))));
 const logoUrl=(id,v)=>`https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/${v}/${id}.png&w=64&h=64`;
 const initials=n=>n.replace(/\b(FK|SK|FC|CF|AŞ)\b/g,"").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toLocaleUpperCase("tr-TR");
 function logo(name){
   const id=S.teamIds&&S.teamIds[name],ini=()=>h("span",{class:"tl ini","aria-hidden":"true"},initials(name));
-  if(!id||LOGO_V[id]==="none"){if(LOGO_DEBUG)logoLog(name,!id?"no id → initials":"gave up earlier → initials");return ini()}
+  if(!id||LOGO_V[id]==="none")return ini();
   // Each image knows which version it tried (the page redraws often, so several copies of a team's
   // logo can fail at once). On a miss it is replaced by a fresh image rather than given a new address:
   // iPhone Safari doesn't reliably reload an image element that has already failed.
   const make=(v,lazy)=>{
     const img=h("img",{class:"tl",src:logoUrl(id,v),alt:"",loading:lazy?"lazy":"eager",decoding:"async",width:"64",height:"64"});
-    if(LOGO_DEBUG){img.addEventListener("load",()=>logoLog(name,v+" ok"));img.addEventListener("error",()=>logoLog(name,v+" FAIL"))}
     img.addEventListener("error",()=>{
       if(v==="500-dark"){if(LOGO_V[id]!=="500"){LOGO_V[id]="500";saveLogoV()}img.replaceWith(make("500",false))}
       else{LOGO_V[id]="none";img.replaceWith(ini())}},{once:true});
     return img};
   return make(LOGO_V[id]||"500-dark",true)}
-/* TEMPORARY logo diagnostics, only with ?logotest in the address: a panel at the bottom listing every
-   team, whether its id is found (exactly, or only after Unicode normalisation) and what each logo
-   load did. Remove once the iPhone logo problem is solved. */
-// On: ?logotest in the address, or the "Logo testi" button next to Can Eren's name (only shown to him).
-const LOGO_DEBUG=/[?&]logotest/.test(location.search)||lsGet("logotest")==="1",LOGO_LOG={};
-const toggleLogoTest=()=>{lsSet("logotest",LOGO_DEBUG?null:"1");location.reload()};
-function logoLog(name,ev){const l=LOGO_LOG[name]=LOGO_LOG[name]||[];if(l[l.length-1]!==ev)l.push(ev);clearTimeout(logoLog.t);logoLog.t=setTimeout(drawLogoTest,300)}
-function drawLogoTest(){
-  if(!LOGO_DEBUG)return;let p=document.getElementById("logotest");
-  if(!p){p=document.createElement("pre");p.id="logotest";p.style.cssText="white-space:pre-wrap;font:12px/1.35 ui-monospace,monospace;background:#fff;color:#000;padding:10px;margin:16px;border-radius:8px";document.body.append(p)}
-  const ids=S.teamIds||{},keys=Object.keys(ids),norm=s=>s.normalize("NFC");
-  const teams=[...new Set([...S.matches,...S.ucl].flatMap(m=>[m.home,m.away]))].sort((a,b)=>a.localeCompare(b,"tr"));
-  const rows=teams.map(n=>{const exact=ids[n];const viaNorm=exact?null:keys.find(k=>norm(k)===norm(n));
-    const code=[...n].filter(c=>c.charCodeAt(0)>127).map(c=>"U+"+c.charCodeAt(0).toString(16).toUpperCase()).join(" ");
-    return `${n}${code?" ["+code+"]":""}: id=${exact||(viaNorm?"ONLY-NORMALISED("+ids[viaNorm]+")":"MISSING")} v=${LOGO_V[exact]||"-"} | ${(LOGO_LOG[n]||[]).join(", ")||"no load yet"}`});
-  p.textContent=`Logo test · ${navigator.userAgent}\nSW: ${navigator.serviceWorker&&navigator.serviceWorker.controller?"on":"off"} · team ids: ${keys.length} · loaded: ${S.loaded}\n\n`+rows.join("\n")}
 
 /* A team name with its logo. end=true puts the logo after the name (home side, next to the score). */
 const teamTag=(name,end)=>{const t=h("span",{class:"tn",text:name}),l=logo(name);return end?[t,l]:[l,t]};
