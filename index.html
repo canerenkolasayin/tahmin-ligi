@@ -497,11 +497,12 @@ function header(){
   const upd=S.syncedAt?new Date(S.syncedAt):null;
   return h("div",{class:"top"},
     p&&S.push&&S.push!=="unsupported"?h("div",{class:"belltop"},bellSwitch()):null,
-    h("div",{class:"brand"},h("h1",{onclick:titleTap},"Tahmin ",h("span",{},"Ligi")),
+    h("div",{class:"brand"},h("h1",{},"Tahmin ",h("span",{},"Ligi")),
       h("p",{},"Süper Lig 2026–27"+(upd?" · skorlar güncellendi: "+(Date.now()-upd<864e5?fmtTime.format(upd):dshort.format(upd)):""))),
     p?h("div",{class:"me"},"Giriş yapan: ",h("b",{text:p.name}),
       h("button",{class:"link","aria-expanded":String(!!S.pc),onclick:()=>{S.pc=S.pc?null:{old:"",n1:"",n2:"",err:""};render();if(S.pc)setTimeout(()=>{const el=document.getElementById("pcOld");el&&el.focus()},0)}},"PIN'i değiştir"),
-      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap")):
+      h("button",{class:"link",onclick:()=>{pushOff();signOut()}},"çıkış yap"),
+      S.me==="can"||LOGO_DEBUG?h("button",{class:"link",onclick:toggleLogoTest},LOGO_DEBUG?"logo testini kapat":"logo testi"):null):
       loadedAll()&&S.tab!=="predict"&&S.tab!=="ucl"?h("button",{class:"btn",onclick:()=>go("predict")},"Tahmin için giriş yap"):null)
 }
 
@@ -703,10 +704,9 @@ function logo(name){
 /* TEMPORARY logo diagnostics, only with ?logotest in the address: a panel at the bottom listing every
    team, whether its id is found (exactly, or only after Unicode normalisation) and what each logo
    load did. Remove once the iPhone logo problem is solved. */
-// On: ?logotest in the address, or tap the "Tahmin Ligi" title 5 times quickly (again to turn off).
+// On: ?logotest in the address, or the "Logo testi" button next to Can Eren's name (only shown to him).
 const LOGO_DEBUG=/[?&]logotest/.test(location.search)||lsGet("logotest")==="1",LOGO_LOG={};
-function titleTap(){const t=Date.now();titleTap.n=(t-(titleTap.last||0)<600?(titleTap.n||0):0)+1;titleTap.last=t;
-  if(titleTap.n>=5){titleTap.n=0;lsSet("logotest",LOGO_DEBUG?null:"1");location.reload()}}
+const toggleLogoTest=()=>{lsSet("logotest",LOGO_DEBUG?null:"1");location.reload()};
 function logoLog(name,ev){const l=LOGO_LOG[name]=LOGO_LOG[name]||[];if(l[l.length-1]!==ev)l.push(ev);clearTimeout(logoLog.t);logoLog.t=setTimeout(drawLogoTest,300)}
 function drawLogoTest(){
   if(!LOGO_DEBUG)return;let p=document.getElementById("logotest");
